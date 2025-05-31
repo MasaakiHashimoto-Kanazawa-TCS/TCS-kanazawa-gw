@@ -75,6 +75,96 @@
         <div class="graph-container">
             {{ plot_html | safe }}
         </div>
+
+    <div class="image-display-container" style="margin-top: 20px; display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
+        <div id="image-info" style="text-align: center;">
+            <p id="loading-message" style="display: none;">Loading image...</p>
+            <p id="error-message" style="color: red; display: none;"></p>
+            <img id="s3-image" src="#" alt="S3 Image" style="max-width: 400px; max-height: 400px; display: none; border: 1px solid #ddd;"/>
+            <p id="image-timestamp-info" style="font-size: 0.9em; color: #555;"></p>
+        </div>
     </div>
+    </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const graphDiv = document.querySelector('.js-plotly-plot'); // Selector for Plotly graph
+        const s3Image = document.getElementById('s3-image');
+        const loadingMessage = document.getElementById('loading-message');
+        const errorMessage = document.getElementById('error-message');
+        const imageTimestampInfo = document.getElementById('image-timestamp-info');
+
+        if (graphDiv && graphDiv.on) { // Check if graphDiv exists and has 'on' method
+            graphDiv.on('plotly_click', function(data) {
+                if (data.points.length > 0) {
+                    const point = data.points[0];
+                    const timestamp = point.x; // Plotly typically returns x-value (timestamp) here
+
+                    // Format the timestamp as expected by the backend (YYYY-MM-DD HH:MM:SS)
+                    // The timestamp from Plotly might be in 'YYYY-MM-DD HH:MM:SS.ssssss' or Date object
+                    // We need to ensure it's formatted correctly.
+                    let formattedTimestamp;
+                    if (timestamp instanceof Date) {
+                        formattedTimestamp = formatDate(timestamp);
+                    } else if (typeof timestamp === 'string') {
+                        // If it's a string like 'YYYY-MM-DD HH:MM:SS.xyz', strip milliseconds part
+                        formattedTimestamp = timestamp.substring(0, 19);
+                    } else {
+                        console.error("Unknown timestamp format from Plotly click:", timestamp);
+                        errorMessage.textContent = 'Could not get valid timestamp from graph.';
+                        errorMessage.style.display = 'block';
+                        s3Image.style.display = 'none';
+                        loadingMessage.style.display = 'none';
+                        imageTimestampInfo.textContent = '';
+                        return;
+                    }
+
+                    fetchImageForTimestamp(formattedTimestamp);
+                }
+            });
+        } else {
+            console.warn("Plotly graph element not found or 'on' method not available.");
+        }
+
+        function formatDate(date) {
+            const YYYY = date.getFullYear();
+            const MM = String(date.getMonth() + 1).padStart(2, '0');
+            const DD = String(date.getDate()).padStart(2, '0');
+            const HH = String(date.getHours()).padStart(2, '0');
+            const mm = String(date.getMinutes()).padStart(2, '0');
+            const ss = String(date.getSeconds()).padStart(2, '0');
+            return `${YYYY}-${MM}-${DD} ${HH}:${mm}:${ss}`;
+        }
+
+        async function fetchImageForTimestamp(timestamp) {
+            loadingMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            s3Image.style.display = 'none';
+            imageTimestampInfo.textContent = '';
+
+            try {
+                const response = await fetch(`/get_image_for_timestamp?timestamp=${encodeURIComponent(timestamp)}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    s3Image.src = data.image_url;
+                    s3Image.style.display = 'block';
+                    // Display the original clicked timestamp for clarity, or the image's actual timestamp if available
+                    imageTimestampInfo.textContent = `Image closest to: ${timestamp} (Key: ${data.image_key})`;
+                } else {
+                    const errorData = await response.json();
+                    errorMessage.textContent = errorData.detail || errorData.error || `Error: ${response.status} ${response.statusText}`;
+                    errorMessage.style.display = 'block';
+                    console.error("Error fetching image:", errorData);
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Failed to fetch image. Check console for details.';
+                errorMessage.style.display = 'block';
+                console.error('Fetch error:', error);
+            } finally {
+                loadingMessage.style.display = 'none';
+            }
+        }
+    });
+</script>
 </body>
 </html> 
