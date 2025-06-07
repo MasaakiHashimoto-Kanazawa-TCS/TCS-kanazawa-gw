@@ -1,6 +1,6 @@
 import boto3
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from botocore.exceptions import ClientError
 import re
 from loguru import logger
@@ -22,6 +22,7 @@ class S3Service:
         """
         # Try to match YYYYMMDD_HHMMSS or YYYY-MM-DD_HH-MM-SS
         match = re.search(r'(\d{4}-?\d{2}-?\d{2}_\d{2}-?\d{2}-?\d{2})', key)
+        logger.info(f"Extracted timestamp: {match} key: {key}")
         if match:
             timestamp_str = match.group(1).replace('-', '') # Normalize to YYYYMMDD_HHMMSS
             try:
@@ -30,13 +31,13 @@ class S3Service:
                 pass
         return None
 
-    def list_images(selfself, prefix='plant_images/'):
+    def list_images(self, prefix=''):
         """
-        Lists images in the S3 bucket under the given prefix.
-        Returns a list of dictionaries, each containing 'key' and 'timestamp'.
-        Filters out objects that don't match the expected timestamp format in the key.
+        S3バケット内の画像をリストアップし、各画像の更新日時（LastModified）を取得する。
+        画像ファイル（jpg, jpeg, png, gif, bmp, webpなど）のみを対象とする。
         """
         images = []
+        image_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.JPG', '.JPEG', '.PNG', '.GIF', '.BMP', '.WEBP')
         try:
             paginator = self.s3_client.get_paginator('list_objects_v2')
             page_iterator = paginator.paginate(Bucket=self.bucket_name, Prefix=prefix)
@@ -44,27 +45,30 @@ class S3Service:
                 if 'Contents' in page:
                     for obj in page['Contents']:
                         key = obj['Key']
-                        timestamp = self._extract_timestamp_from_key(key)
-                        if timestamp:
-                            images.append({'key': key, 'timestamp': timestamp})
+                        if key.lower().endswith(image_extensions):
+                            last_modified = obj['LastModified']  # datetime型
+                            images.append({'key': key, 'timestamp': last_modified})
+                        else:
+                            logger.warning(f"Skipping object {key} due to unsupported file extension")
         except ClientError as e:
             logger.error(f"Error listing S3 objects: {e}")
-            raise # Re-raise the exception to be handled by the caller
+            raise
         return images
 
     def find_closest_image(self, target_timestamp_str):
         """
-        Finds the image in S3 with the timestamp closest to the target_timestamp.
-        target_timestamp_str should be in '%Y-%m-%d %H:%M:%S' format.
-        Returns the key of the closest image or None if no suitable image is found.
+        指定した日時（'%Y-%m-%d %H:%M:%S'形式）に最も近い更新日時の画像を返す。
+        JST（日本標準時）で比較する。
         """
+        JST = timezone(timedelta(hours=9))
         try:
             target_dt = datetime.strptime(target_timestamp_str, '%Y-%m-%d %H:%M:%S')
+            target_dt = target_dt.replace(tzinfo=JST)
         except ValueError:
             logger.error(f"Invalid target timestamp format: {target_timestamp_str}")
             return None
 
-        images = self.list_images() # Assuming images are in a common prefix like 'plant_images/'
+        images = self.list_images()  # prefixが必要なら引数で渡す
         if not images:
             return None
 
@@ -72,7 +76,14 @@ class S3Service:
         min_time_diff = timedelta.max
 
         for image_info in images:
-            time_diff = abs(image_info['timestamp'] - target_dt)
+            ts = image_info['timestamp']
+            if ts.tzinfo is None:
+                # naive型ならJSTを付与
+                ts_jst = ts.replace(tzinfo=JST)
+            else:
+                # aware型ならJSTへ変換
+                ts_jst = ts.astimezone(JST)
+            time_diff = abs(ts_jst - target_dt)
             if time_diff < min_time_diff:
                 min_time_diff = time_diff
                 closest_image = image_info['key']
