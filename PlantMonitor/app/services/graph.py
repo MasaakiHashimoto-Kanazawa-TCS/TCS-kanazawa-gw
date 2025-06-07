@@ -13,6 +13,7 @@ class GraphService:
                 xaxis_title='日時',
                 yaxis_title='平均値',
                 template='plotly_white',
+                autosize=True,
                 annotations=[dict(
                     text='指定された期間にデータがありません',
                     xref='paper',
@@ -22,7 +23,7 @@ class GraphService:
                     showarrow=False
                 )]
             )
-            return fig.to_html(full_html=False)
+            return fig.to_html(full_html=False, config={'responsive': True})
             
         df = pd.DataFrame(data)
         df['insert_date'] = pd.to_datetime(df['insert_date'])
@@ -40,7 +41,8 @@ class GraphService:
             title='時系列データ',
             xaxis_title='日時',
             yaxis_title='平均値',
-            template='plotly_white'
+            template='plotly_white',
+            autosize=True
         )
         
-        return fig.to_html(full_html=False) 
+        return fig.to_html(full_html=False, config={'responsive': True}) 

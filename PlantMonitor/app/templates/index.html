@@ -20,6 +20,12 @@
             border: 1px solid #ddd;
             padding: 20px;
             border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .graph-container .js-plotly-plot {
+            width: 100% !important;
+            height: 100% !important;
         }
         .form-container {
             margin-bottom: 20px;
@@ -72,18 +78,22 @@
             </form>
         </div>
 
-        <div class="graph-container">
-            {{ plot_html | safe }}
+        <!-- グラフと画像を横並びにするflexコンテナ -->
+        <div style="display: flex; justify-content: center; align-items: flex-start; gap: 40px; margin-top: 20px;">
+            <div class="graph-container" style="flex: 1; min-width: 0; width: 100%; box-sizing: border-box;">
+                <div id="plotly-graph" style="width: 100%;">
+                    {{ plot_html | safe }}
+                </div>
+            </div>
+            <div class="image-display-container" style="flex: 0 0 420px; max-width: 420px;">
+                <div id="image-info" style="text-align: center;">
+                    <p id="loading-message" style="display: none;">Loading image...</p>
+                    <p id="error-message" style="color: red; display: none;"></p>
+                    <img id="s3-image" src="#" alt="S3 Image" style="max-width: 400px; max-height: 400px; display: none; border: 1px solid #ddd;"/>
+                    <p id="image-timestamp-info" style="font-size: 0.9em; color: #555;"></p>
+                </div>
+            </div>
         </div>
-
-    <div class="image-display-container" style="margin-top: 20px; display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
-        <div id="image-info" style="text-align: center;">
-            <p id="loading-message" style="display: none;">Loading image...</p>
-            <p id="error-message" style="color: red; display: none;"></p>
-            <img id="s3-image" src="#" alt="S3 Image" style="max-width: 400px; max-height: 400px; display: none; border: 1px solid #ddd;"/>
-            <p id="image-timestamp-info" style="font-size: 0.9em; color: #555;"></p>
-        </div>
-    </div>
     </div>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -164,6 +174,11 @@
                 loadingMessage.style.display = 'none';
             }
         }
+
+        // 初期表示時にPlotlyのリサイズを強制
+        setTimeout(function() {
+            window.dispatchEvent(new Event('resize'));
+        }, 100);
     });
 </script>
 </body>
