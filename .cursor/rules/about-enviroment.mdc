@@ -1,0 +1,14 @@
+---
+description: 
+globs: **/*.py,**/pyproject.toml,**/requirements.txt
+alwaysApply: false
+---
+# Pythonパッケージ管理はuv addを使用
+
+- **パッケージインストール:** `uv add <パッケージ名>`
+- **仮想環境作成:** `uv venv`
+- **仮想環境有効化:**  
+  - Linux/Mac: `source .venv/bin/activate`
+  - Windows: `.\.venv\Scripts\Activate.ps1`
+- **依存関係同期:** `uv sync`
+

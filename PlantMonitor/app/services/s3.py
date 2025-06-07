@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 from botocore.exceptions import ClientError
 import re
+from loguru import logger
 
 class S3Service:
     def __init__(self):
@@ -47,9 +48,7 @@ class S3Service:
                         if timestamp:
                             images.append({'key': key, 'timestamp': timestamp})
         except ClientError as e:
-            print(f"Error listing S3 objects: {e}")
-            # Depending on the error, you might want to raise it or handle it differently
-            # For now, returning an empty list or re-raising might be options
+            logger.error(f"Error listing S3 objects: {e}")
             raise # Re-raise the exception to be handled by the caller
         return images
 
@@ -62,7 +61,7 @@ class S3Service:
         try:
             target_dt = datetime.strptime(target_timestamp_str, '%Y-%m-%d %H:%M:%S')
         except ValueError:
-            print(f"Invalid target timestamp format: {target_timestamp_str}")
+            logger.error(f"Invalid target timestamp format: {target_timestamp_str}")
             return None
 
         images = self.list_images() # Assuming images are in a common prefix like 'plant_images/'
@@ -95,7 +94,7 @@ class S3Service:
             )
             return response
         except ClientError as e:
-            print(f"Error generating presigned URL for {object_key}: {e}")
+            logger.error(f"Error generating presigned URL for {object_key}: {e}")
             return None
 
 # Example Usage (for testing purposes, remove or comment out in production):
@@ -127,20 +126,20 @@ if __name__ == '__main__':
     s3_service = S3Service()
     s3_service.s3_client = MockS3Client() # Replace real client with mock
 
-    print("Listing images:")
+    logger.info("Listing images:")
     images_found = s3_service.list_images()
     for img in images_found:
-        print(f"  {img['key']} -> {img['timestamp']}")
+        logger.info(f"  {img['key']} -> {img['timestamp']}")
 
-    print("\nFinding closest image to '2023-10-26 12:03:00':")
+    logger.info("\nFinding closest image to '2023-10-26 12:03:00':")
     closest_key = s3_service.find_closest_image('2023-10-26 12:03:00')
-    print(f"  Closest image key: {closest_key}") # Expected: plant_images/pic_20231026_120500.jpg
+    logger.info(f"  Closest image key: {closest_key}") # Expected: plant_images/pic_20231026_120500.jpg
 
-    print("\nFinding closest image to '2023-10-26 12:09:00':")
+    logger.info("\nFinding closest image to '2023-10-26 12:09:00':")
     closest_key_2 = s3_service.find_closest_image('2023-10-26 12:09:00')
-    print(f"  Closest image key: {closest_key_2}") # Expected: plant_images/2023-10-26_12-10-00_data.jpg
+    logger.info(f"  Closest image key: {closest_key_2}") # Expected: plant_images/2023-10-26_12-10-00_data.jpg
 
     if closest_key:
-        print(f"\nGenerating presigned URL for {closest_key}:")
+        logger.info(f"\nGenerating presigned URL for {closest_key}:")
         url = s3_service.generate_presigned_url(closest_key)
-        print(f"  URL: {url}")
+        logger.info(f"  URL: {url}")
