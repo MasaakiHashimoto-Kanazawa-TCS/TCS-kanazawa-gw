@@ -1,57 +1,61 @@
 # PlantMonitor
 
-PlantMonitor is a FastAPI web application designed to visualize time-series data from sensors (e.g., temperature, pH) stored in AWS DynamoDB and display related images from AWS S3.
+PlantMonitorは、AWS DynamoDBに保存されたセンサーデータ（例: 温度、pH）と、AWS S3に保存された関連画像を可視化するFastAPIウェブアプリケーションです。
 
-## Configuration
+## 環境構築
 
-Create a `.env` file in the `PlantMonitor` directory by copying the `.env.example` file:
+1. **仮想環境の作成**
+   ```bash
+   uv venv
+   ```
+   - Linux/Mac: `source .venv/bin/activate`
+   - Windows: `.\.venv\Scripts\Activate.ps1`
+
+2. **依存パッケージのインストール**
+   ```bash
+   uv add fastapi uvicorn boto3 plotly jinja2 python-dotenv pytest pytest-mock requests
+   uv sync
+   ```
+   - 依存パッケージは`uv add <パッケージ名>`で追加し、`uv sync`で同期します。
+
+3. **.envファイルの作成**
+   `PlantMonitor`ディレクトリで`.env.example`をコピーして`.env`を作成し、必要な値を設定してください。
+   ```bash
+   cp .env.example .env
+   ```
+   - 主な設定項目:
+     - `AWS_DYNAMODB_TABLE_NAME`: DynamoDBテーブル名（例: `aggdata_table`）
+     - `AWS_S3_BUCKET_NAME`: S3バケット名
+     - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`: AWS認証情報
+     - その他、`DEFAULT_DATA_TYPE`や`DEFAULT_PERIOD_DAYS`など
+
+## 主な機能
+
+- **データ可視化:** DynamoDBから取得した時系列データ（温度、pHなど）をPlotlyグラフで表示
+- **データフィルタ:** データ型や期間（日数）でのフィルタリング
+- **画像表示:** グラフ上のデータ点をクリックすると、S3バケット内で最も近いタイムスタンプの画像を表示
+  - **画像の配置場所:** 画像はS3バケット内の`plant_images/`プレフィックス（フォルダ）配下に配置することを推奨しますが、実際の検索処理（`find_closest_image`メソッド）はデフォルトでプレフィックスを指定していません。必要に応じて`list_images`メソッドの`prefix`引数に`plant_images/`を指定してください。
+  - **タイムスタンプの扱い:** 画像のマッチングにはS3オブジェクトの`LastModified`（最終更新日時）を利用しています。ファイル名にタイムスタンプ（`YYYYMMDD_HHMMSS`や`YYYY-MM-DD_HH-MM-SS`形式）を含めることを推奨しますが、現状の実装ではファイル名からの抽出は行っていません。今後、ファイル名ベースのマッチングが必要な場合は`_extract_timestamp_from_key`メソッドを利用してください。
+  - **エラーハンドリング:** マッチする画像が見つからない場合やS3アクセスエラー時は、グラフ下部にエラーメッセージを表示します。
+
+## アプリケーションの起動
 
 ```bash
-cp .env.example .env
+uv run run.py
 ```
+- ブラウザで `http://127.0.0.1:8000` にアクセスしてください。
 
-Update the `.env` file with your specific configurations:
+## テスト
 
-*   `AWS_DYNAMODB_TABLE_NAME`: The name of your DynamoDB table (e.g., `aggdata_table` as in the example).
-*   `AWS_S3_BUCKET_NAME`: The name of the S3 bucket where plant images are stored.
-*   `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`: Your AWS credentials and region (e.g., `ap-northeast-1`), if not configured globally or via IAM roles.
-*   Other application settings like `DEFAULT_DATA_TYPE` and `DEFAULT_PERIOD_DAYS` can also be adjusted as needed.
+- テストは`pytest`で実行します。
+- S3レスポンスのモックデータには`LastModified`フィールドを必ず含めてください。
+  - 例: `{'Key': 'plant_images/img_20231026_120000.jpg', 'LastModified': datetime(2023, 10, 26, 12, 0, 0)}`
+- テスト実行例:
+  ```bash
+  pytest
+  ```
+- テスト用の環境変数（`AWS_S3_BUCKET_NAME`や`AWS_DYNAMODB_TABLE_NAME`など）は`.env`またはテストファイル内で設定してください。
 
-## Features
+---
 
-*   **Data Visualization**: Displays time-series data (e.g., temperature, pH, configurable via `DEFAULT_DATA_TYPE`) from DynamoDB on an interactive Plotly graph.
-*   **Data Filtering**: Allows filtering data by type (temperature, pH) and time range (number of days, configurable via `DEFAULT_PERIOD_DAYS`) through the web interface.
-*   **Image Display**: When a data point on the graph is clicked, the application fetches and displays the image from the configured S3 bucket whose timestamp is closest to the selected data point. This provides a visual correlation with the graphed data.
-    *   **Image Naming Convention**: For images to be correctly matched, their filenames in the S3 bucket should contain a timestamp in `YYYYMMDD_HHMMSS` or `YYYY-MM-DD_HH-MM-SS` format (e.g., `plant_images/20231026_120000.jpg` or `plant_images/capture_2023-10-27_09-30-00.png`).
-    *   **Image Location**: Images are expected to be under a prefix (folder) named `plant_images/` within the S3 bucket. This prefix is currently hardcoded in the `S3Service` (`app/services/s3.py`) but can be modified there if needed.
-    *   **Error Handling**: If no matching image is found for a clicked timestamp, or if there's an issue fetching it (e.g., image not found, S3 access error), an appropriate message is displayed below the graph area.
-
-## Running the Application
-
-1.  Ensure Python 3.8+ is installed.
-2.  Set up a virtual environment (recommended):
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    ```
-3.  Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-    *(Note: `requirements.txt` would need to be created and include `fastapi`, `uvicorn`, `boto3`, `plotly`, `jinja2`, `python-dotenv` etc.)*
-4.  Configure your AWS credentials and settings in the `.env` file as described in the "Configuration" section.
-5.  Run the FastAPI application using Uvicorn:
-    ```bash
-    uvicorn app.main:app --reload --port 8000
-    ```
-6.  Open your web browser and navigate to `http://127.0.0.1:8000`.
-
-## Testing
-
-Tests are written using `pytest`. Ensure development dependencies (like `pytest`, `pytest-mock`, `requests` for TestClient) are installed.
-
-To run tests:
-```bash
-pytest
-```
-This command will discover and run tests in the `PlantMonitor/tests` directory. Ensure `AWS_S3_BUCKET_NAME` and `AWS_DYNAMODB_TABLE_NAME` are set in your environment (e.g., via `.env` or directly) for tests that might rely on app initialization, though critical service interactions are typically mocked. Test-specific environment variables are also set within test files like `test_main_py_endpoint.py`.
+> **パッケージ管理・環境構築は@about-enviroment.mdcのルールに従ってください。**
