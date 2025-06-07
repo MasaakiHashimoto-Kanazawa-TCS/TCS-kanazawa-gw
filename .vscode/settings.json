@@ -1,0 +1,17 @@
+{
+    "files.exclude  ": {
+        "**/.git": true,
+        "**/.venv": true,
+        "**/__pycache__": true,
+    },
+    "files.search.exclude": {
+        "**/.git": true,
+        "**/.venv": true,
+        "**/__pycache__": true,
+    },
+    "files.watcherExclude": {
+        "**/.git": true,
+        "**/.venv": true,
+        "**/__pycache__": true,
+    }
+}
