@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import type { Plant, SensorData } from '@/types';
 import { usePlantData, useSensorData, useAlerts } from '@/hooks';
 import { PlantCard, MetricsGrid } from '@/components/dashboard';
+import { CompactAlertBanner } from '@/components/alerts';
 import { Button, LoadingSpinner, ErrorMessage, Badge, DotBadge } from '@/components/ui';
 import { DATA_TYPE_OPTIONS, REALTIME_UPDATE_INTERVAL } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -161,53 +162,11 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
 
       {/* アクティブアラート */}
       {activeAlerts.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            アクティブなアラート
-          </h2>
-          <div className="space-y-2">
-            {activeAlerts.slice(0, 3).map((alert) => (
-              <div
-                key={alert.id}
-                className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="danger" size="sm">
-                        {alert.severity === 'high' ? '緊急' : alert.severity === 'medium' ? '警告' : '注意'}
-                      </Badge>
-                      <span className="text-sm font-medium text-red-800 dark:text-red-200">
-                        {alert.message}
-                      </span>
-                    </div>
-                    {alert.recommendedAction && (
-                      <p className="mt-1 text-sm text-red-700 dark:text-red-300">
-                        推奨アクション: {alert.recommendedAction}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => acknowledgeAlert(alert.id)}
-                    >
-                      確認
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => dismissAlert(alert.id)}
-                    >
-                      解除
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <CompactAlertBanner
+          alerts={activeAlerts}
+          onAcknowledge={acknowledgeAlert}
+          onDismiss={dismissAlert}
+        />
       )}
 
       {/* メトリクスグリッド */}

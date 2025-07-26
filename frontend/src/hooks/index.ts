@@ -21,3 +21,7 @@ export { useTheme } from './useTheme';
 export type { UseThemeResult, Theme } from './useTheme';
 
 export { useLocalStorage, useSessionStorage } from './useLocalStorage';
+
+// レスポンシブ関連
+export { useResponsive, useIsMobile, useIsTouchDevice, useOrientation, useViewportSize } from './useResponsive';
+export type { UseResponsiveResult, Breakpoint } from './useResponsive';

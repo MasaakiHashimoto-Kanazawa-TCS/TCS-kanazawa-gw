@@ -10,3 +10,16 @@ export type { NavigationProps, NavigationItem } from './Navigation';
 
 export { AppLayout, SimpleLayout, FullscreenLayout } from './AppLayout';
 export type { AppLayoutProps } from './AppLayout';
+
+export { 
+  ResponsiveGrid, 
+  ResponsiveCardGrid, 
+  ResponsiveFlex, 
+  ResponsiveContainer 
+} from './ResponsiveGrid';
+export type { 
+  ResponsiveGridProps, 
+  ResponsiveCardGridProps, 
+  ResponsiveFlexProps, 
+  ResponsiveContainerProps 
+} from './ResponsiveGrid';
