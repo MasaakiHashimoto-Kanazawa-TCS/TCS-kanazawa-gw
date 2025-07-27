@@ -37,10 +37,15 @@ export interface GetSummaryParams {
   end_time?: string;
 }
 
-export type TimeRange = '24h' | '7d' | '30d';
+export type TimeRange = '24h' | '7d' | '30d' | '150d' | 'custom';
 
 export interface TimeRangeOption {
   value: TimeRange;
   label: string;
   days: number;
+}
+
+export interface CustomTimeRange {
+  startDate: string;
+  endDate: string;
 }

@@ -125,13 +125,27 @@ export function useSensorData(options: UseSensorDataOptions): UseSensorDataResul
   // リアルタイム更新の設定
   useEffect(() => {
     if (realtime) {
-      subscribe(dataType);
+      // 既存の購読を解除
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
+
+      // 新しい購読を開始
+      unsubscribeRef.current = sensorService.subscribeToUpdates(
+        dataType,
+        (newData) => {
+          setLatest(newData);
+        }
+      );
     }
 
     return () => {
-      unsubscribe();
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
     };
-  }, [dataType, realtime, subscribe, unsubscribe]);
+  }, [dataType, realtime]);
 
   // 統合されたローディング状態とエラー状態
   const loading = historyLoading || latestLoading || summaryLoading;
@@ -182,13 +196,13 @@ export function useMultiSensorData(dataTypes: DataType[], timeRange: string = '2
     } finally {
       setLoading(false);
     }
-  }, [dataTypes, timeRange]);
+  }, [dataTypes.join(','), timeRange]);
 
   useEffect(() => {
     if (dataTypes.length > 0) {
       fetchAllData();
     }
-  }, [fetchAllData]);
+  }, [dataTypes.join(','), timeRange]);
 
   return {
     data,

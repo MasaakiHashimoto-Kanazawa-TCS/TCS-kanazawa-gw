@@ -5,7 +5,7 @@
 import type { SensorData, DataSummary, DataType, GetDataParams, GetSummaryParams } from '@/types';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
-import { transformSensorData, generateMockSensorData } from '@/lib/utils/dataTransform';
+import { transformSensorData, transformDynamoDBData, generateMockSensorData } from '@/lib/utils/dataTransform';
 import { IS_DEVELOPMENT } from '@/lib/constants';
 
 export class SensorService {
@@ -19,9 +19,9 @@ export class SensorService {
         return this.getMockData(params.data_type, params.limit || 100);
       }
 
-      // 将来のJSON API実装
-      const response = await apiClient.get<{ data: any[] }>(API_ENDPOINTS.DATA, params);
-      return transformSensorData(response.data);
+      // 将来のJSON API実装（DynamoDBデータ構造に対応）
+      const response = await apiClient.get<any[]>(API_ENDPOINTS.DATA, params);
+      return transformDynamoDBData(response);
     } catch (error) {
       console.warn('Failed to fetch real data, using mock data:', error);
       return this.getMockData(params.data_type, params.limit || 100);
@@ -93,6 +93,10 @@ export class SensorService {
         startTime = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         limit = 720; // 1時間間隔
         break;
+      case '150d':
+        startTime = new Date(now.getTime() - 150 * 24 * 60 * 60 * 1000);
+        limit = 3600; // 1時間間隔
+        break;
       default:
         startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         limit = 144;
@@ -102,6 +106,34 @@ export class SensorService {
       data_type: dataType,
       start_time: startTime.toISOString(),
       end_time: now.toISOString(),
+      limit
+    });
+  }
+
+  /**
+   * カスタム期間でデータを取得
+   */
+  async getDataByCustomRange(dataType: DataType, startTime: string, endTime: string): Promise<SensorData[]> {
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // 期間に応じてデータポイント数を調整
+    let limit: number;
+    if (diffDays <= 1) {
+      limit = 144; // 10分間隔
+    } else if (diffDays <= 7) {
+      limit = 168; // 1時間間隔
+    } else if (diffDays <= 30) {
+      limit = 720; // 1時間間隔
+    } else {
+      limit = Math.min(diffDays * 24, 3600); // 最大3600ポイント
+    }
+
+    return this.getData({
+      data_type: dataType,
+      start_time: startTime,
+      end_time: endTime,
       limit
     });
   }

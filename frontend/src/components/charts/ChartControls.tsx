@@ -4,14 +4,18 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Button, Badge } from '@/components/ui';
+import { CustomDateRangePicker, formatCustomTimeRange } from './CustomDateRangePicker';
 import { TIME_RANGE_OPTIONS, DATA_TYPE_OPTIONS } from '@/lib/constants';
-import type { TimeRange, DataType } from '@/types';
+import type { TimeRange, DataType, CustomTimeRange } from '@/types';
 import { cn } from '@/lib/utils';
 
 export interface ChartControlsProps {
   selectedTimeRange: TimeRange;
   onTimeRangeChange: (timeRange: TimeRange) => void;
+  customTimeRange?: CustomTimeRange;
+  onCustomTimeRangeChange?: (range: CustomTimeRange) => void;
   selectedDataType?: DataType;
   onDataTypeChange?: (dataType: DataType) => void;
   showDataTypeSelector?: boolean;
@@ -23,6 +27,8 @@ export interface ChartControlsProps {
 export function ChartControls({
   selectedTimeRange,
   onTimeRangeChange,
+  customTimeRange,
+  onCustomTimeRangeChange,
   selectedDataType,
   onDataTypeChange,
   showDataTypeSelector = false,
@@ -30,6 +36,28 @@ export function ChartControls({
   onRefresh,
   className
 }: ChartControlsProps) {
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+
+  const handleTimeRangeClick = (timeRange: TimeRange) => {
+    if (timeRange === 'custom') {
+      setShowCustomPicker(true);
+    } else {
+      onTimeRangeChange(timeRange);
+    }
+  };
+
+  const handleCustomRangeApply = (range: CustomTimeRange) => {
+    if (onCustomTimeRangeChange) {
+      onCustomTimeRangeChange(range);
+    }
+    onTimeRangeChange('custom');
+    setShowCustomPicker(false);
+  };
+
+  const handleCustomPickerClose = () => {
+    setShowCustomPicker(false);
+  };
+
   return (
     <div className={cn('flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0', className)}>
       {/* 時間範囲選択 */}
@@ -37,16 +65,18 @@ export function ChartControls({
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
           期間:
         </span>
-        <div className="flex space-x-1">
+        <div className="flex flex-wrap gap-1">
           {TIME_RANGE_OPTIONS.map((option) => (
             <Button
               key={option.value}
               variant={selectedTimeRange === option.value ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => onTimeRangeChange(option.value)}
+              onClick={() => handleTimeRangeClick(option.value)}
               disabled={isLoading}
             >
-              {option.label}
+              {option.value === 'custom' && selectedTimeRange === 'custom' && customTimeRange
+                ? formatCustomTimeRange(customTimeRange)
+                : option.label}
             </Button>
           ))}
         </div>
@@ -96,11 +126,19 @@ export function ChartControls({
           <span>更新</span>
         </Button>
       )}
+
+      {/* カスタム期間選択モーダル */}
+      <CustomDateRangePicker
+        isOpen={showCustomPicker}
+        onClose={handleCustomPickerClose}
+        onApply={handleCustomRangeApply}
+        initialRange={customTimeRange}
+      />
     </div>
   );
 }
-
-/**
+/*
+*
  * チャート統計情報コンポーネント
  */
 export interface ChartStatsProps {

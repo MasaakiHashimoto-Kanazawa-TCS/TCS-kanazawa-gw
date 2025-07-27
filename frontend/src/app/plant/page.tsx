@@ -4,20 +4,25 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout';
 import { PlantCard, SummaryMetrics } from '@/components/dashboard';
 import { PlantDetails } from '@/components/plant';
 import { ResponsiveTimeSeriesChart, ChartControls, ChartToolbar } from '@/components/charts';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { usePlantData, useSensorData, useAlerts } from '@/hooks';
+import { sensorService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
-import type { TimeRange, DataType } from '@/types';
+import type { TimeRange, DataType, CustomTimeRange, SensorData } from '@/types';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function PlantDetailPage() {
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24h');
   const [selectedDataType, setSelectedDataType] = useState<DataType>('temperature');
+  const [customTimeRange, setCustomTimeRange] = useState<CustomTimeRange>();
+  const [customData, setCustomData] = useState<SensorData[]>([]);
+  const [customLoading, setCustomLoading] = useState(false);
+  const [customError, setCustomError] = useState<string | null>(null);
 
   // 植物データの取得
   const { selectedPlant, loading: plantLoading } = usePlantData();
@@ -42,6 +47,41 @@ export default function PlantDetailPage() {
     plantId: selectedPlant?.id,
     thresholds: selectedPlant?.thresholds
   });
+
+  // カスタム期間データの取得
+  const fetchCustomData = async (range: CustomTimeRange) => {
+    setCustomLoading(true);
+    setCustomError(null);
+    
+    try {
+      const data = await sensorService.getDataByCustomRange(
+        selectedDataType,
+        range.startDate,
+        range.endDate
+      );
+      setCustomData(data);
+    } catch (error) {
+      setCustomError(error instanceof Error ? error.message : 'データの取得に失敗しました');
+    } finally {
+      setCustomLoading(false);
+    }
+  };
+
+  // カスタム期間が変更された時の処理
+  useEffect(() => {
+    if (selectedTimeRange === 'custom' && customTimeRange) {
+      fetchCustomData(customTimeRange);
+    }
+  }, [customTimeRange, selectedDataType]);
+
+  // データ更新処理
+  const handleRefresh = () => {
+    if (selectedTimeRange === 'custom' && customTimeRange) {
+      fetchCustomData(customTimeRange);
+    } else {
+      refreshSensorData();
+    }
+  };
 
   if (plantLoading || !selectedPlant) {
     return (
@@ -75,8 +115,8 @@ export default function PlantDetailPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={refreshSensorData}
-                  loading={sensorLoading}
+                  onClick={handleRefresh}
+                  loading={selectedTimeRange === 'custom' ? customLoading : sensorLoading}
                 >
                   更新
                 </Button>
@@ -144,18 +184,20 @@ export default function PlantDetailPage() {
               <ChartControls
                 selectedTimeRange={selectedTimeRange}
                 onTimeRangeChange={setSelectedTimeRange}
+                customTimeRange={customTimeRange}
+                onCustomTimeRangeChange={setCustomTimeRange}
                 selectedDataType={selectedDataType}
                 onDataTypeChange={setSelectedDataType}
                 showDataTypeSelector={true}
-                isLoading={sensorLoading}
-                onRefresh={refreshSensorData}
+                isLoading={selectedTimeRange === 'custom' ? customLoading : sensorLoading}
+                onRefresh={handleRefresh}
               />
             </CardContent>
           </Card>
 
           {/* 時系列チャート */}
           <ResponsiveTimeSeriesChart
-            data={sensorData}
+            data={selectedTimeRange === 'custom' ? customData : sensorData}
             dataType={selectedDataType}
             timeRange={selectedTimeRange}
             showThresholds={true}

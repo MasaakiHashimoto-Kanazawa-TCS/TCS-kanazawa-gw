@@ -18,7 +18,8 @@ export type {
   GetDataParams,
   GetSummaryParams,
   TimeRange,
-  TimeRangeOption
+  TimeRangeOption,
+  CustomTimeRange
 } from './sensor';
 
 // 植物関連

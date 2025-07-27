@@ -32,7 +32,9 @@ export const CHART_COLORS = {
 export const TIME_RANGE_OPTIONS = [
   { value: '24h' as const, label: '過去24時間', days: 1 },
   { value: '7d' as const, label: '過去7日間', days: 7 },
-  { value: '30d' as const, label: '過去30日間', days: 30 }
+  { value: '30d' as const, label: '過去30日間', days: 30 },
+  { value: '150d' as const, label: '過去150日間', days: 150 },
+  { value: 'custom' as const, label: 'カスタム期間', days: 0 }
 ];
 
 // データタイプオプション
@@ -72,4 +74,11 @@ export const DEFAULT_SETTINGS = {
   showAlerts: true,
   defaultTimeRange: '24h' as const,
   defaultDataType: 'temperature' as const
+} as const;
+
+// システム設定（実際のDynamoDBデータ構造に合わせて）
+export const SYSTEM_CONFIG = {
+  DEFAULT_DEVICE_ID: 'sensor_001',
+  DEFAULT_LOCATION: '温室A',
+  SUPPORTED_DATA_TYPES: ['temperature', 'ph'] as const
 } as const;

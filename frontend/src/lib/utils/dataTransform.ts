@@ -162,7 +162,24 @@ export function groupDataByInterval(
 }
 
 /**
+ * DynamoDBデータからSensorDataに変換
+ */
+export function transformDynamoDBData(rawData: any[]): SensorData[] {
+  if (!Array.isArray(rawData)) {
+    return [];
+  }
+
+  return rawData.map(item => ({
+    timestamp: item.insert_date || new Date().toISOString(),
+    value: parseFloat(item.avg_value) || 0,
+    device_id: 'sensor_001', // 固定値（DynamoDBにはない）
+    location: '温室A' // 固定値（DynamoDBにはない）
+  }));
+}
+
+/**
  * モックデータ生成（開発・テスト用）
+ * 実際のDynamoDBデータ構造に近い形で生成
  */
 export function generateMockSensorData(
   dataType: DataType,
@@ -179,7 +196,7 @@ export function generateMockSensorData(
     let value: number;
     switch (dataType) {
       case 'temperature':
-        // 18-28度の範囲で変動
+        // 18-28度の範囲で変動（実際のセンサーデータに近い値）
         value = 23 + Math.sin(i * 0.1) * 3 + (Math.random() - 0.5) * 2;
         break;
       case 'ph':
@@ -193,8 +210,8 @@ export function generateMockSensorData(
     data.push({
       timestamp: timestamp.toISOString(),
       value: Math.round(value * 100) / 100, // 小数点2桁まで
-      device_id: 'sensor_001',
-      location: '温室A'
+      device_id: 'sensor_001', // 実際のシステムでは設定から取得
+      location: '温室A' // 実際のシステムでは設定から取得
     });
   }
 

@@ -35,13 +35,13 @@ export interface UpdatePlantRequest {
   thresholds?: Partial<ThresholdConfig>;
 }
 
-// デモ用のデフォルト植物データ
+// デモ用のデフォルト植物データ（実際のシステム構成に合わせて調整）
 export const DEFAULT_PLANT: Plant = {
   id: 'plant-001',
   name: 'バジル',
   species: 'Ocimum basilicum',
   location: '温室A',
-  device_id: 'sensor_001',
+  device_id: 'sensor_001', // 実際のシステムでは設定ファイルから取得
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   thresholds: {

@@ -42,6 +42,18 @@ export function useApiData<T>(
   const intervalRef = useRef<NodeJS.Timeout>();
   const mountedRef = useRef(true);
 
+  // refを使用してコールバックを保存
+  const fetcherRef = useRef(fetcher);
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
+
+  // refを更新
+  useEffect(() => {
+    fetcherRef.current = fetcher;
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+  });
+
   const fetchData = useCallback(async (isRefetch = false) => {
     if (!enabled) return;
 
@@ -53,18 +65,18 @@ export function useApiData<T>(
       }
       setError(null);
 
-      const result = await fetcher();
+      const result = await fetcherRef.current();
       
       if (mountedRef.current) {
         setData(result);
-        onSuccess?.(result);
+        onSuccessRef.current?.(result);
       }
     } catch (err) {
       if (mountedRef.current) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);
         logError(err, 'useApiData');
-        onError?.(err);
+        onErrorRef.current?.(err);
       }
     } finally {
       if (mountedRef.current) {
@@ -72,7 +84,7 @@ export function useApiData<T>(
         setIsRefetching(false);
       }
     }
-  }, [fetcher, enabled, onSuccess, onError]);
+  }, [enabled]);
 
   const refetch = useCallback(async () => {
     await fetchData(true);
@@ -83,7 +95,7 @@ export function useApiData<T>(
     if (enabled) {
       fetchData();
     }
-  }, [fetchData, enabled]);
+  }, [enabled, fetchData]);
 
   // 定期更新の設定
   useEffect(() => {
@@ -98,7 +110,7 @@ export function useApiData<T>(
         }
       };
     }
-  }, [fetchData, refetchInterval, enabled]);
+  }, [refetchInterval, enabled, fetchData]);
 
   // クリーンアップ
   useEffect(() => {

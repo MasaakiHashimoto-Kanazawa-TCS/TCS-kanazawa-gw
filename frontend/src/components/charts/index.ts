@@ -15,3 +15,6 @@ export type {
 
 export { ResponsiveTimeSeriesChart, ResponsiveComparisonChart } from './ResponsiveChart';
 export type { ResponsiveTimeSeriesChartProps, ResponsiveComparisonChartProps } from './ResponsiveChart';
+
+export { CustomDateRangePicker, formatCustomTimeRange, isValidCustomTimeRange } from './CustomDateRangePicker';
+export type { CustomDateRangePickerProps } from './CustomDateRangePicker';

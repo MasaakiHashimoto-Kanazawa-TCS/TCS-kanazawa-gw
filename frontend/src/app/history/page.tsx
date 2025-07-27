@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout';
 import { 
   ResponsiveTimeSeriesChart, 
@@ -15,15 +15,20 @@ import {
 } from '@/components/charts';
 import { Card, CardContent, Button, LoadingSpinner, ErrorMessage } from '@/components/ui';
 import { useSensorData, useMultiSensorData } from '@/hooks';
+import { sensorService } from '@/lib/services';
 import { calculateDataStats } from '@/lib/utils/dataTransform';
 import { DEFAULT_PLANT } from '@/types';
-import type { TimeRange, DataType } from '@/types';
+import type { TimeRange, DataType, CustomTimeRange, SensorData } from '@/types';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function HistoryPage() {
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24h');
   const [selectedDataType, setSelectedDataType] = useState<DataType>('temperature');
   const [showComparison, setShowComparison] = useState(false);
+  const [customTimeRange, setCustomTimeRange] = useState<CustomTimeRange>();
+  const [customData, setCustomData] = useState<SensorData[]>([]);
+  const [customLoading, setCustomLoading] = useState(false);
+  const [customError, setCustomError] = useState<string | null>(null);
 
   // 単一データタイプのデータ取得
   const {
@@ -57,18 +62,47 @@ export default function HistoryPage() {
     }
   }, [sensorData, multiData, showComparison]);
 
+  // カスタム期間データの取得
+  const fetchCustomData = async (range: CustomTimeRange) => {
+    setCustomLoading(true);
+    setCustomError(null);
+    
+    try {
+      const data = await sensorService.getDataByCustomRange(
+        selectedDataType,
+        range.startDate,
+        range.endDate
+      );
+      setCustomData(data);
+    } catch (error) {
+      setCustomError(error instanceof Error ? error.message : 'データの取得に失敗しました');
+    } finally {
+      setCustomLoading(false);
+    }
+  };
+
+  // カスタム期間が変更された時の処理
+  useEffect(() => {
+    if (selectedTimeRange === 'custom' && customTimeRange) {
+      fetchCustomData(customTimeRange);
+    }
+  }, [customTimeRange, selectedDataType]);
+
   // データ更新
   const handleRefresh = () => {
-    if (showComparison) {
+    if (selectedTimeRange === 'custom' && customTimeRange) {
+      fetchCustomData(customTimeRange);
+    } else if (showComparison) {
       refreshMultiData();
     } else {
       refreshSensorData();
     }
   };
 
-  // ローディング状態
-  const isLoading = showComparison ? multiLoading : sensorLoading;
-  const error = showComparison ? multiError : sensorError;
+  // 表示用データの決定
+  const displayData = selectedTimeRange === 'custom' ? customData : sensorData;
+  const displayLoading = selectedTimeRange === 'custom' ? customLoading : (showComparison ? multiLoading : sensorLoading);
+  const displayError = selectedTimeRange === 'custom' ? customError : (showComparison ? multiError : sensorError);
 
   return (
     <ErrorBoundary>
@@ -97,33 +131,35 @@ export default function HistoryPage() {
               <ChartControls
                 selectedTimeRange={selectedTimeRange}
                 onTimeRangeChange={setSelectedTimeRange}
+                customTimeRange={customTimeRange}
+                onCustomTimeRangeChange={setCustomTimeRange}
                 selectedDataType={selectedDataType}
                 onDataTypeChange={setSelectedDataType}
                 showDataTypeSelector={!showComparison}
-                isLoading={isLoading}
+                isLoading={displayLoading}
                 onRefresh={handleRefresh}
               />
             </CardContent>
           </Card>
 
           {/* エラー表示 */}
-          {error && (
+          {displayError && (
             <ErrorMessage
-              error={error}
+              error={displayError}
               retry={handleRefresh}
               variant="banner"
             />
           )}
 
           {/* ローディング表示 */}
-          {isLoading && (
+          {displayLoading && (
             <div className="flex justify-center py-8">
               <LoadingSpinner size="lg" message="データを読み込み中..." />
             </div>
           )}
 
           {/* チャート表示 */}
-          {!isLoading && !error && (
+          {!displayLoading && !displayError && (
             <>
               {showComparison ? (
                 <ResponsiveComparisonChart
@@ -133,7 +169,7 @@ export default function HistoryPage() {
                 />
               ) : (
                 <ResponsiveTimeSeriesChart
-                  data={sensorData}
+                  data={displayData}
                   dataType={selectedDataType}
                   timeRange={selectedTimeRange}
                   showThresholds={true}
@@ -144,7 +180,7 @@ export default function HistoryPage() {
           )}
 
           {/* 統計情報 */}
-          {!isLoading && !error && (
+          {!displayLoading && !displayError && (
             <Card>
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -174,7 +210,7 @@ export default function HistoryPage() {
                   </div>
                 ) : (
                   <ChartStats
-                    stats={stats}
+                    stats={selectedTimeRange === 'custom' ? calculateDataStats(displayData) : stats}
                     dataType={selectedDataType}
                   />
                 )}
@@ -196,7 +232,7 @@ export default function HistoryPage() {
                 </div>
                 <Button
                   variant="outline"
-                  disabled={isLoading || !!error}
+                  disabled={displayLoading || !!displayError}
                   onClick={() => {
                     // CSV エクスポート機能（将来実装）
                     alert('CSV エクスポート機能は今後実装予定です');

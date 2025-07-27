@@ -134,6 +134,36 @@ export function TimeSeriesChart({
           day: 'numeric' 
         });
       case '30d':
+      case '150d':
+        return date.toLocaleDateString('ja-JP', { 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      case 'custom':
+        // カスタム期間の場合、データの範囲に応じてフォーマットを決定
+        if (chartData.length > 0) {
+          const firstDate = new Date(chartData[0].timestamp);
+          const lastDate = new Date(chartData[chartData.length - 1].timestamp);
+          const diffDays = Math.ceil((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= 1) {
+            return date.toLocaleTimeString('ja-JP', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            });
+          } else if (diffDays <= 30) {
+            return date.toLocaleDateString('ja-JP', { 
+              month: 'short', 
+              day: 'numeric' 
+            });
+          } else {
+            return date.toLocaleDateString('ja-JP', { 
+              year: '2-digit',
+              month: 'short', 
+              day: 'numeric' 
+            });
+          }
+        }
         return date.toLocaleDateString('ja-JP', { 
           month: 'short', 
           day: 'numeric' 
@@ -351,6 +381,30 @@ export function ComparisonChart({
         });
       case '7d':
       case '30d':
+      case '150d':
+        return date.toLocaleDateString('ja-JP', { 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      case 'custom':
+        // カスタム期間の場合、データの範囲に応じてフォーマットを決定
+        if (chartData.length > 0) {
+          const firstDate = new Date(chartData[0].timestamp);
+          const lastDate = new Date(chartData[chartData.length - 1].timestamp);
+          const diffDays = Math.ceil((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= 1) {
+            return date.toLocaleTimeString('ja-JP', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            });
+          } else {
+            return date.toLocaleDateString('ja-JP', { 
+              month: 'short', 
+              day: 'numeric' 
+            });
+          }
+        }
         return date.toLocaleDateString('ja-JP', { 
           month: 'short', 
           day: 'numeric' 
