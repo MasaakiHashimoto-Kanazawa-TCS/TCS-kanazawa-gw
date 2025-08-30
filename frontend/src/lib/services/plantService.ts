@@ -14,13 +14,18 @@ export class PlantService {
    */
   async getPlants(): Promise<Plant[]> {
     try {
+      console.log('PlantService.getPlants: Starting, IS_DEVELOPMENT:', IS_DEVELOPMENT);
+      
       // 開発中は単一植物のモックデータを使用
       if (IS_DEVELOPMENT) {
+        console.log('PlantService.getPlants: Using mock data, DEFAULT_PLANT:', DEFAULT_PLANT);
         return [DEFAULT_PLANT];
       }
 
       // 将来のJSON API実装
+      console.log('PlantService.getPlants: Calling API');
       const response = await apiClient.get<Plant[]>(API_ENDPOINTS.PLANTS);
+      console.log('PlantService.getPlants: API response:', response);
       return response;
     } catch (error) {
       console.warn('Failed to fetch plants, using mock data:', error);

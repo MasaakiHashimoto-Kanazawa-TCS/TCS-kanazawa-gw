@@ -3,6 +3,7 @@
 """
 from pydantic_settings import BaseSettings
 from typing import Optional
+import logging
 
 
 class Settings(BaseSettings):
@@ -26,6 +27,12 @@ class Settings(BaseSettings):
     api_description: str = "植物監視システムのバックエンドAPI"
     api_version: str = "0.1.0"
     
+    # ログ設定
+    log_level: str = "INFO"
+    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    enable_request_logging: bool = True
+    log_to_file: bool = False
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -33,3 +40,38 @@ class Settings(BaseSettings):
 
 # グローバル設定インスタンス
 settings = Settings()
+
+
+def setup_logging():
+    """ログ設定を初期化"""
+    import os
+    
+    # ログディレクトリを作成
+    log_dir = "logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    
+    handlers = [
+        logging.StreamHandler(),  # コンソール出力
+    ]
+    
+    # ファイル出力を追加（オプション）
+    if hasattr(settings, 'log_to_file') and settings.log_to_file:
+        from logging.handlers import RotatingFileHandler
+        file_handler = RotatingFileHandler(
+            filename=os.path.join(log_dir, "app.log"),
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5
+        )
+        file_handler.setFormatter(logging.Formatter(settings.log_format))
+        handlers.append(file_handler)
+    
+    logging.basicConfig(
+        level=getattr(logging, settings.log_level.upper()),
+        format=settings.log_format,
+        handlers=handlers
+    )
+    
+    # uvicornのログレベルも設定
+    logging.getLogger("uvicorn").setLevel(getattr(logging, settings.log_level.upper()))
+    logging.getLogger("uvicorn.access").setLevel(getattr(logging, settings.log_level.upper()))

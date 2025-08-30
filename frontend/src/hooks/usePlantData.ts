@@ -2,8 +2,9 @@
  * 植物データ取得フック
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { Plant } from '@/types';
+import { DEFAULT_PLANT } from '@/types';
 import { plantService } from '@/lib/services';
 import { useApiData } from './useApiData';
 import { DATA_REFRESH_INTERVAL } from '@/lib/constants';
@@ -22,27 +23,46 @@ export interface UsePlantDataResult {
  * 植物データ取得フック
  */
 export function usePlantData(): UsePlantDataResult {
-  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
+  console.log('usePlantData: Hook called');
 
-  // 植物一覧の取得
-  const {
-    data: plants,
-    loading,
-    error,
-    refetch,
-    isRefetching
-  } = useApiData(
-    () => plantService.getPlants(),
-    {
-      refetchInterval: DATA_REFRESH_INTERVAL,
-      onSuccess: (data) => {
+  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
+  const [plants, setPlantsData] = useState<Plant[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isRefetching, setIsRefetching] = useState(false);
+
+  // 直接植物データを取得
+  useEffect(() => {
+    const fetchPlants = async () => {
+      try {
+        console.log('usePlantData: Direct fetch starting');
+        setLoading(true);
+        setError(null);
+
+        // 一時的に直接DEFAULT_PLANTを使用
+        const plantsData = [DEFAULT_PLANT];
+        console.log('usePlantData: Using DEFAULT_PLANT directly:', plantsData);
+
+        setPlantsData(plantsData);
+
         // 初回データ取得時に最初の植物を選択
-        if (data.length > 0 && !selectedPlantId) {
-          setSelectedPlantId(data[0].id);
+        if (plantsData.length > 0 && !selectedPlantId) {
+          console.log('usePlantData: Selecting first plant:', plantsData[0].id);
+          setSelectedPlantId(plantsData[0].id);
         }
+      } catch (err) {
+        console.error('usePlantData: Direct fetch error:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch plants');
+      } finally {
+        console.log('usePlantData: Setting loading to false');
+        setLoading(false);
       }
-    }
-  );
+    };
+
+    fetchPlants();
+  }, []); // 依存関係を空にして初回のみ実行
+
+  console.log('usePlantData state:', { loading, error, plants: plants?.length, selectedPlantId });
 
   // 選択された植物を取得
   const selectedPlant = plants?.find(plant => plant.id === selectedPlantId) || null;
@@ -54,8 +74,16 @@ export function usePlantData(): UsePlantDataResult {
 
   // データを更新
   const refreshData = useCallback(async () => {
-    await refetch();
-  }, [refetch]);
+    try {
+      setIsRefetching(true);
+      const plantsData = await plantService.getPlants();
+      setPlantsData(plantsData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to refresh plants');
+    } finally {
+      setIsRefetching(false);
+    }
+  }, []);
 
   return {
     plants: plants || [],

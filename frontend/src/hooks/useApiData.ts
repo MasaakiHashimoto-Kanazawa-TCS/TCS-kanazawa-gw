@@ -49,13 +49,19 @@ export function useApiData<T>(
 
   // refを更新
   useEffect(() => {
+    console.log('useApiData: Updating refs');
     fetcherRef.current = fetcher;
     onSuccessRef.current = onSuccess;
     onErrorRef.current = onError;
   });
 
   const fetchData = useCallback(async (isRefetch = false) => {
-    if (!enabled) return;
+    if (!enabled) {
+      console.log('useApiData: Fetch disabled');
+      return;
+    }
+
+    console.log('useApiData: Starting fetch, isRefetch:', isRefetch);
 
     try {
       if (isRefetch) {
@@ -66,12 +72,14 @@ export function useApiData<T>(
       setError(null);
 
       const result = await fetcherRef.current();
+      console.log('useApiData: Fetch successful, result:', result);
       
       if (mountedRef.current) {
         setData(result);
         onSuccessRef.current?.(result);
       }
     } catch (err) {
+      console.error('useApiData: Fetch error:', err);
       if (mountedRef.current) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);
@@ -80,11 +88,12 @@ export function useApiData<T>(
       }
     } finally {
       if (mountedRef.current) {
+        console.log('useApiData: Fetch completed, setting loading to false');
         setLoading(false);
         setIsRefetching(false);
       }
     }
-  }, [enabled]);
+  }, []);
 
   const refetch = useCallback(async () => {
     await fetchData(true);
@@ -92,10 +101,12 @@ export function useApiData<T>(
 
   // 初回データ取得
   useEffect(() => {
+    console.log('useApiData: Initial fetch effect, enabled:', enabled);
     if (enabled) {
+      console.log('useApiData: Calling fetchData for initial load');
       fetchData();
     }
-  }, [enabled, fetchData]);
+  }, [enabled]);
 
   // 定期更新の設定
   useEffect(() => {
@@ -110,7 +121,7 @@ export function useApiData<T>(
         }
       };
     }
-  }, [refetchInterval, enabled, fetchData]);
+  }, [refetchInterval, enabled]);
 
   // クリーンアップ
   useEffect(() => {

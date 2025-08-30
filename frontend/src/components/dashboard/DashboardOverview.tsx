@@ -19,10 +19,13 @@ export interface DashboardOverviewProps {
 }
 
 export function DashboardOverview({ className, autoRefresh = true }: DashboardOverviewProps) {
+  console.log('DashboardOverview: Component rendering');
+  
   const [selectedDataType, setSelectedDataType] = useState<'temperature' | 'ph'>('temperature');
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
 
   // 植物データの取得
+  console.log('DashboardOverview: About to call usePlantData');
   const {
     plants,
     selectedPlant,
@@ -31,6 +34,13 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
     refreshData: refreshPlants,
     isRefetching: isRefetchingPlants
   } = usePlantData();
+
+  console.log('DashboardOverview render:', { 
+    plantsLoading, 
+    plantsError, 
+    plants: plants?.length, 
+    selectedPlant: selectedPlant?.id 
+  });
 
   // センサーデータの取得（温度）
   const {
@@ -98,14 +108,23 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
     ]);
   };
 
-  // ローディング状態
-  const isLoading = plantsLoading || temperatureLoading || phLoading;
+  // ローディング状態を改善 - 植物データのみでローディング判定
+  const isLoading = plantsLoading;
   const isRefetching = isRefetchingPlants;
 
   // エラー状態
   const error = plantsError || temperatureError || phError;
 
+  console.log('DashboardOverview conditions:', { 
+    isLoading, 
+    selectedPlant: !!selectedPlant, 
+    error,
+    shouldShowLoading: isLoading && !selectedPlant,
+    shouldShowError: error && !selectedPlant
+  });
+
   if (isLoading && !selectedPlant) {
+    console.log('DashboardOverview: Showing loading spinner');
     return (
       <div className="flex items-center justify-center py-12">
         <LoadingSpinner size="lg" message="データを読み込み中..." />
@@ -114,6 +133,7 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
   }
 
   if (error && !selectedPlant) {
+    console.log('DashboardOverview: Showing error message');
     return (
       <div className="py-12">
         <ErrorMessage
@@ -124,6 +144,8 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
       </div>
     );
   }
+
+  console.log('DashboardOverview: Rendering main content');
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -194,8 +216,8 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
           </h2>
           <PlantCard
             plant={selectedPlant}
-            temperatureData={latestTemperature}
-            phData={latestPH}
+            temperatureData={latestTemperature || undefined}
+            phData={latestPH || undefined}
             showDetails={true}
           />
         </div>

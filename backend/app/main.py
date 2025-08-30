@@ -4,16 +4,26 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 import os
-from .config import settings
+import logging
+from .config import settings, setup_logging
 from .services.dynamodb import DynamoDBService
 from .services.graph import GraphService
 from .api.v1 import router as api_v1_router
+from .middleware import RequestLoggingMiddleware
+
+# ログ設定を初期化
+setup_logging()
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.api_title,
     description=settings.api_description,
     version=settings.api_version
 )
+
+# リクエストログミドルウェアを追加（有効な場合のみ）
+if settings.enable_request_logging:
+    app.add_middleware(RequestLoggingMiddleware)
 
 # CORS設定
 app.add_middleware(
@@ -35,8 +45,9 @@ app.mount("/static", StaticFiles(directory=os.path.join(current_dir, "static")),
 try:
     dynamodb_service = DynamoDBService()
     graph_service = GraphService()
+    logger.info("アプリケーションの初期化が完了しました")
 except Exception as e:
-    print(f"初期化エラー: {str(e)}")
+    logger.error(f"初期化エラー: {str(e)}")
     raise
 
 @app.get("/")
@@ -50,8 +61,8 @@ async def home(
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
         
-        print(f"データ取得開始: data_type={data_type}, days={days}")
-        print(f"期間: {start_date} から {end_date}")
+        logger.info(f"データ取得開始: data_type={data_type}, days={days}")
+        logger.debug(f"期間: {start_date} から {end_date}")
         
         data = dynamodb_service.get_data(
             data_type,
@@ -60,6 +71,8 @@ async def home(
         )
         
         plot_html = graph_service.create_time_series_plot(data)
+        
+        logger.info(f"データ取得完了: {len(data)}件のデータを取得")
         
         return templates.TemplateResponse(
             "index.html",
@@ -71,6 +84,7 @@ async def home(
             }
         )
     except Exception as e:
+        logger.error(f"ホームページエラー: {str(e)}")
         return templates.TemplateResponse(
             "error.html",
             {"request": request, "error_message": f"エラーが発生しました: {str(e)}"}

@@ -12,6 +12,13 @@ export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0';
 export const IS_DEVELOPMENT = process.env.NEXT_PUBLIC_ENVIRONMENT === 'development';
 export const IS_DEBUG = process.env.NEXT_PUBLIC_DEBUG === 'true';
 
+// デバッグ用ログ
+console.log('Constants loaded:', {
+  NEXT_PUBLIC_ENVIRONMENT: process.env.NEXT_PUBLIC_ENVIRONMENT,
+  IS_DEVELOPMENT,
+  IS_DEBUG
+});
+
 // データ更新間隔（ミリ秒）
 export const DATA_REFRESH_INTERVAL = 30000; // 30秒
 export const REALTIME_UPDATE_INTERVAL = 5000; // 5秒

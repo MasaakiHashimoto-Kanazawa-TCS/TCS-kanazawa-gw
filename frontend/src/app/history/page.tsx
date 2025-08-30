@@ -6,12 +6,12 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { AppLayout } from '@/components/layout';
-import { 
-  ResponsiveTimeSeriesChart, 
-  ResponsiveComparisonChart, 
-  ChartControls, 
-  ChartStats, 
-  ChartToolbar 
+import {
+  ResponsiveTimeSeriesChart,
+  ResponsiveComparisonChart,
+  ChartControls,
+  ChartStats,
+  ChartToolbar
 } from '@/components/charts';
 import { Card, CardContent, Button, LoadingSpinner, ErrorMessage } from '@/components/ui';
 import { useSensorData, useMultiSensorData } from '@/hooks';
@@ -30,17 +30,48 @@ export default function HistoryPage() {
   const [customLoading, setCustomLoading] = useState(false);
   const [customError, setCustomError] = useState<string | null>(null);
 
-  // 単一データタイプのデータ取得
-  const {
-    data: sensorData,
-    loading: sensorLoading,
-    error: sensorError,
-    refreshData: refreshSensorData
-  } = useSensorData({
-    dataType: selectedDataType,
-    timeRange: selectedTimeRange,
-    autoRefresh: false
-  });
+  // 単一データタイプのデータ取得（直接実装）
+  const [sensorData, setSensorData] = useState<SensorData[]>([]);
+  const [sensorLoading, setSensorLoading] = useState(true);
+  const [sensorError, setSensorError] = useState<string | null>(null);
+
+  // センサーデータを直接取得
+  useEffect(() => {
+    const fetchSensorData = async () => {
+      if (selectedTimeRange === 'custom') return; // カスタム期間の場合はスキップ
+      
+      try {
+        console.log('HistoryPage: Fetching sensor data', { selectedDataType, selectedTimeRange });
+        setSensorLoading(true);
+        setSensorError(null);
+        
+        const data = await sensorService.getDataByTimeRange(selectedDataType, selectedTimeRange);
+        console.log('HistoryPage: Sensor data fetched', data.length);
+        setSensorData(data);
+      } catch (error) {
+        console.error('HistoryPage: Sensor data fetch error', error);
+        setSensorError(error instanceof Error ? error.message : 'データの取得に失敗しました');
+      } finally {
+        setSensorLoading(false);
+      }
+    };
+
+    fetchSensorData();
+  }, [selectedDataType, selectedTimeRange]);
+
+  const refreshSensorData = async () => {
+    if (selectedTimeRange === 'custom') return;
+    
+    try {
+      setSensorLoading(true);
+      const data = await sensorService.getDataByTimeRange(selectedDataType, selectedTimeRange);
+      setSensorData(data);
+    } catch (error) {
+      setSensorError(error instanceof Error ? error.message : 'データの取得に失敗しました');
+    } finally {
+      setSensorLoading(false);
+    }
+  };
 
   // 比較用の複数データタイプ取得
   const {
@@ -62,11 +93,16 @@ export default function HistoryPage() {
     }
   }, [sensorData, multiData, showComparison]);
 
+  // 型ガード関数
+  const isComparisonStats = (stats: any): stats is { temperature: any; ph: any } => {
+    return showComparison && 'temperature' in stats && 'ph' in stats;
+  };
+
   // カスタム期間データの取得
   const fetchCustomData = async (range: CustomTimeRange) => {
     setCustomLoading(true);
     setCustomError(null);
-    
+
     try {
       const data = await sensorService.getDataByCustomRange(
         selectedDataType,
@@ -103,6 +139,17 @@ export default function HistoryPage() {
   const displayData = selectedTimeRange === 'custom' ? customData : sensorData;
   const displayLoading = selectedTimeRange === 'custom' ? customLoading : (showComparison ? multiLoading : sensorLoading);
   const displayError = selectedTimeRange === 'custom' ? customError : (showComparison ? multiError : sensorError);
+
+  // デバッグログ
+  console.log('HistoryPage loading states:', {
+    selectedTimeRange,
+    showComparison,
+    customLoading,
+    multiLoading,
+    sensorLoading,
+    displayLoading,
+    dataLength: displayData?.length
+  });
 
   return (
     <ErrorBoundary>
@@ -186,8 +233,8 @@ export default function HistoryPage() {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   統計情報
                 </h3>
-                
-                {showComparison ? (
+
+                {isComparisonStats(stats) ? (
                   <div className="space-y-6">
                     <div>
                       <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">

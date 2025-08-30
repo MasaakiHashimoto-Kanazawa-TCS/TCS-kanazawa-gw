@@ -5,16 +5,20 @@ API v1 endpoints for Plant Monitor
 from fastapi import APIRouter, HTTPException, Query
 from datetime import datetime, timedelta
 from typing import List, Optional
+import logging
 from ..services.dynamodb import DynamoDBService
 from ..config import settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["v1"])
 
 # DynamoDBサービスのインスタンス
 try:
     dynamodb_service = DynamoDBService()
+    logger.info("DynamoDBサービスが初期化されました")
 except Exception as e:
-    print(f"DynamoDB初期化エラー: {str(e)}")
+    logger.error(f"DynamoDB初期化エラー: {str(e)}")
     dynamodb_service = None
 
 @router.get("/data")
@@ -31,21 +35,26 @@ async def get_sensor_data(
         raise HTTPException(status_code=500, detail="DynamoDB service not available")
     
     try:
+        logger.info(f"センサーデータ取得開始: data_type={data_type}, limit={limit}")
+        
         # デフォルトの時間範囲を設定（過去1年間）
         if not start_time or not end_time:
             end_dt = datetime.now()
             start_dt = end_dt - timedelta(days=365)
             start_time = start_dt.strftime("%Y-%m-%d %H:%M:%S")
             end_time = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+            logger.debug(f"デフォルト時間範囲を使用: {start_time} - {end_time}")
         else:
             # ISO形式からDynamoDB形式に変換
             start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
             end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
             start_time = start_dt.strftime("%Y-%m-%d %H:%M:%S")
             end_time = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+            logger.debug(f"指定時間範囲: {start_time} - {end_time}")
         
         # DynamoDBからデータを取得
         raw_data = dynamodb_service.get_data(data_type, start_time, end_time)
+        logger.info(f"DynamoDBから{len(raw_data)}件のデータを取得")
         
         # フロントエンド用の形式に変換
         result = []
@@ -60,10 +69,11 @@ async def get_sensor_data(
         # 時刻順にソート
         result.sort(key=lambda x: x["timestamp"])
         
+        logger.info(f"センサーデータ取得完了: {len(result)}件のデータを返却")
         return result
         
     except Exception as e:
-        print(f"データ取得エラー: {str(e)}")
+        logger.error(f"データ取得エラー: {str(e)}")
         raise HTTPException(status_code=500, detail=f"データ取得に失敗しました: {str(e)}")
 
 @router.get("/data/latest")
@@ -77,6 +87,8 @@ async def get_latest_data(
         raise HTTPException(status_code=500, detail="DynamoDB service not available")
     
     try:
+        logger.info(f"最新データ取得開始: data_type={data_type}")
+        
         # 過去1年間のデータを取得
         end_dt = datetime.now()
         start_dt = end_dt - timedelta(days=365)
@@ -86,20 +98,24 @@ async def get_latest_data(
         raw_data = dynamodb_service.get_data(data_type, start_time, end_time)
         
         if not raw_data:
+            logger.warning(f"最新データが見つかりません: data_type={data_type}")
             return None
         
         # 最新のデータを取得
         latest = max(raw_data, key=lambda x: x["insert_date"])
         
-        return {
+        result = {
             "timestamp": latest["insert_date"] + "Z",
             "value": float(latest["avg_value"]),
             "device_id": "sensor_001",
             "location": "温室A"
         }
         
+        logger.info(f"最新データ取得完了: timestamp={result['timestamp']}, value={result['value']}")
+        return result
+        
     except Exception as e:
-        print(f"最新データ取得エラー: {str(e)}")
+        logger.error(f"最新データ取得エラー: {str(e)}")
         raise HTTPException(status_code=500, detail=f"最新データ取得に失敗しました: {str(e)}")
 
 @router.get("/data/summary")
@@ -116,6 +132,8 @@ async def get_data_summary(
         raise HTTPException(status_code=500, detail="DynamoDB service not available")
     
     try:
+        logger.info(f"データサマリー取得開始: data_type={data_type}, period={period}")
+        
         # デフォルトの時間範囲を設定（データが古いため、広い範囲で検索）
         if not start_time or not end_time:
             end_dt = datetime.now()
@@ -130,16 +148,19 @@ async def get_data_summary(
             
             start_time = start_dt.strftime("%Y-%m-%d %H:%M:%S")
             end_time = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+            logger.debug(f"デフォルト時間範囲を使用: {start_time} - {end_time}")
         else:
             # ISO形式からDynamoDB形式に変換
             start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
             end_dt = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
             start_time = start_dt.strftime("%Y-%m-%d %H:%M:%S")
             end_time = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+            logger.debug(f"指定時間範囲: {start_time} - {end_time}")
         
         raw_data = dynamodb_service.get_data(data_type, start_time, end_time)
         
         if not raw_data:
+            logger.warning(f"サマリー用データが見つかりません: data_type={data_type}")
             return {
                 "average": 0,
                 "minimum": 0,
@@ -150,7 +171,7 @@ async def get_data_summary(
         
         values = [float(item["avg_value"]) for item in raw_data]
         
-        return {
+        result = {
             "average": sum(values) / len(values),
             "minimum": min(values),
             "maximum": max(values),
@@ -158,8 +179,11 @@ async def get_data_summary(
             "period": period
         }
         
+        logger.info(f"データサマリー取得完了: count={result['count']}, avg={result['average']:.2f}")
+        return result
+        
     except Exception as e:
-        print(f"サマリー取得エラー: {str(e)}")
+        logger.error(f"サマリー取得エラー: {str(e)}")
         raise HTTPException(status_code=500, detail=f"サマリー取得に失敗しました: {str(e)}")
 
 @router.get("/plants")
