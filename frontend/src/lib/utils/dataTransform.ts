@@ -199,7 +199,7 @@ export function generateMockSensorData(
         // 18-28度の範囲で変動（実際のセンサーデータに近い値）
         value = 23 + Math.sin(i * 0.1) * 3 + (Math.random() - 0.5) * 2;
         break;
-      case 'ph':
+      case 'pH':
         // 6.0-7.5の範囲で変動
         value = 6.75 + Math.sin(i * 0.05) * 0.5 + (Math.random() - 0.5) * 0.3;
         break;

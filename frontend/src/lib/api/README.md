@@ -7,7 +7,7 @@
 ### DynamoDBデータ構造
 ```
 aggdata_table:
-- data_type (パーティションキー): "temperature" | "ph"
+- data_type (パーティションキー): "temperature" | "pH"
 - insert_date (ソートキー): "YYYY-MM-DD HH:MM:SS"
 - avg_value (数値): センサーの平均値
 ```
@@ -133,7 +133,7 @@ async def get_plants():
             "updated_at": "2025-01-26T00:00:00Z",
             "thresholds": {
                 "temperature": {"min": 18, "max": 28},
-                "ph": {"min": 6.0, "max": 7.5}
+                "pH": {"min": 6.0, "max": 7.5}
             }
         }
     ]

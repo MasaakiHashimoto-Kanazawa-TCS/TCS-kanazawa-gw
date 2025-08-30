@@ -158,10 +158,10 @@ export function PlantDetails({
               {phData ? (
                 <div className="space-y-2">
                   <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                    {formatValue(phData.value, 'ph')}
+                    {formatValue(phData.value, 'pH')}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    正常範囲: pH {plant.thresholds.ph.min} - {plant.thresholds.ph.max}
+                    正常範囲: pH {plant.thresholds.pH.min} - {plant.thresholds.pH.max}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-500">
                     更新: {formatDate(phData.timestamp, { 
@@ -243,11 +243,11 @@ function ThresholdDisplay({ thresholds, detailed = false }: ThresholdDisplayProp
       color: 'text-red-600 dark:text-red-400'
     },
     {
-      key: 'ph',
+      key: 'pH',
       label: 'pH',
       icon: '⚗️',
       unit: '',
-      threshold: thresholds.ph,
+      threshold: thresholds.pH,
       color: 'text-purple-600 dark:text-purple-400'
     }
   ];
@@ -322,11 +322,11 @@ export function PlantStatusSummary({
     }
 
     if (phData) {
-      const ph = phData.value;
-      const threshold = plant.thresholds.ph;
-      if (ph < threshold.min || ph > threshold.max) {
+      const pH = phData.value;
+      const threshold = plant.thresholds.pH;
+      if (pH < threshold.min || pH > threshold.max) {
         issues++;
-        if (ph < threshold.min - 0.5 || ph > threshold.max + 0.5) {
+        if (pH < threshold.min - 0.5 || pH > threshold.max + 0.5) {
           criticalIssues++;
         }
       }

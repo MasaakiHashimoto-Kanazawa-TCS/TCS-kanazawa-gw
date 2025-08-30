@@ -15,7 +15,7 @@ export class PlantService {
   async getPlants(): Promise<Plant[]> {
     try {
       console.log('PlantService.getPlants: Starting, IS_DEVELOPMENT:', IS_DEVELOPMENT);
-      
+
       // 開発中は単一植物のモックデータを使用
       if (IS_DEVELOPMENT) {
         console.log('PlantService.getPlants: Using mock data, DEFAULT_PLANT:', DEFAULT_PLANT);
@@ -88,6 +88,13 @@ export class PlantService {
         const updatedPlant: Plant = {
           ...currentPlant,
           ...updates,
+          // thresholdsが部分的に更新される場合は、既存の値とマージ
+          thresholds: updates.thresholds
+            ? {
+              temperature: updates.thresholds.temperature || currentPlant.thresholds.temperature,
+              pH: updates.thresholds.pH || currentPlant.thresholds.pH,
+            }
+            : currentPlant.thresholds,
           updated_at: new Date().toISOString()
         };
         return updatedPlant;
@@ -124,7 +131,7 @@ export class PlantService {
   /**
    * 植物の健康状態を評価
    */
-  evaluateHealthStatus(plant: Plant, latestData: { temperature?: number; ph?: number }): {
+  evaluateHealthStatus(plant: Plant, latestData: { temperature?: number; pH?: number }): {
     status: 'healthy' | 'warning' | 'critical';
     issues: string[];
   } {
@@ -144,12 +151,12 @@ export class PlantService {
     }
 
     // pHチェック
-    if (latestData.ph !== undefined) {
-      const phThreshold = plant.thresholds.ph;
-      if (latestData.ph < phThreshold.min) {
+    if (latestData.pH !== undefined) {
+      const phThreshold = plant.thresholds.pH;
+      if (latestData.pH < phThreshold.min) {
         issues.push('pHが低すぎます（酸性）');
         status = status === 'critical' ? 'critical' : 'warning';
-      } else if (latestData.ph > phThreshold.max) {
+      } else if (latestData.pH > phThreshold.max) {
         issues.push('pHが高すぎます（アルカリ性）');
         status = status === 'critical' ? 'critical' : 'warning';
       }

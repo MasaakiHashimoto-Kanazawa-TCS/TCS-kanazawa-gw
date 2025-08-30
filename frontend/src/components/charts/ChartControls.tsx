@@ -21,6 +21,8 @@ export interface ChartControlsProps {
   showDataTypeSelector?: boolean;
   isLoading?: boolean;
   onRefresh?: () => void;
+  autoRefresh?: boolean;
+  onAutoRefreshChange?: (enabled: boolean) => void;
   className?: string;
 }
 
@@ -34,6 +36,8 @@ export function ChartControls({
   showDataTypeSelector = false,
   isLoading = false,
   onRefresh,
+  autoRefresh = false,
+  onAutoRefreshChange,
   className
 }: ChartControlsProps) {
   const [showCustomPicker, setShowCustomPicker] = useState(false);
@@ -111,21 +115,45 @@ export function ChartControls({
         </div>
       )}
 
-      {/* 更新ボタン */}
-      {onRefresh && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRefresh}
-          loading={isLoading}
-          className="flex items-center space-x-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span>更新</span>
-        </Button>
-      )}
+      {/* 更新制御 */}
+      <div className="flex items-center space-x-3">
+        {/* 自動更新チェックボックス */}
+        {onAutoRefreshChange && (
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={(e) => onAutoRefreshChange(e.target.checked)}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              自動更新
+            </span>
+            {autoRefresh && (
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-600 dark:text-green-400">ON</span>
+              </div>
+            )}
+          </label>
+        )}
+
+        {/* 更新ボタン */}
+        {onRefresh && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            loading={isLoading}
+            className="flex items-center space-x-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>更新</span>
+          </Button>
+        )}
+      </div>
 
       {/* カスタム期間選択モーダル */}
       <CustomDateRangePicker
@@ -157,7 +185,7 @@ export function ChartStats({ stats, dataType, className }: ChartStatsProps) {
     switch (dataType) {
       case 'temperature':
         return `${value.toFixed(1)}°C`;
-      case 'ph':
+      case 'pH':
         return `pH ${value.toFixed(2)}`;
       default:
         return value.toFixed(1);

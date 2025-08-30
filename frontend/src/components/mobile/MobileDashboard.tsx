@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Plant, SensorData } from '@/types';
 import { usePlantData, useSensorData, useAlerts } from '@/hooks';
 import { MobileCard, MobileGrid } from './MobileLayout';
@@ -19,27 +19,30 @@ export interface MobileDashboardProps {
 }
 
 export function MobileDashboard({ className }: MobileDashboardProps) {
-  const [selectedDataType, setSelectedDataType] = useState<'temperature' | 'ph'>('temperature');
+  const [selectedDataType, setSelectedDataType] = useState<'temperature' | 'pH'>('temperature');
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   // データ取得
   const { selectedPlant, loading: plantLoading } = usePlantData();
   
   const {
     latest: latestTemperature,
-    loading: tempLoading
+    loading: tempLoading,
+    refreshData: refreshTemperature
   } = useSensorData({
     dataType: 'temperature',
-    autoRefresh: true,
-    realtime: true
+    autoRefresh: autoRefresh,
+    realtime: autoRefresh
   });
 
   const {
     latest: latestPH,
-    loading: phLoading
+    loading: phLoading,
+    refreshData: refreshPH
   } = useSensorData({
-    dataType: 'ph',
-    autoRefresh: true,
-    realtime: true
+    dataType: 'pH',
+    autoRefresh: autoRefresh,
+    realtime: autoRefresh
   });
 
   const { activeAlerts, acknowledgeAlert, dismissAlert } = useAlerts({
@@ -47,6 +50,16 @@ export function MobileDashboard({ className }: MobileDashboardProps) {
     thresholds: selectedPlant?.thresholds,
     autoGenerate: true
   });
+
+  // 全データの更新
+  const handleRefreshAll = async () => {
+    await Promise.all([
+      refreshTemperature(),
+      refreshPH()
+    ]);
+  };
+
+
 
   if (plantLoading || !selectedPlant) {
     return (
@@ -92,7 +105,7 @@ export function MobileDashboard({ className }: MobileDashboardProps) {
             icon="⚗️"
             value={latestPH?.value}
             unit=""
-            threshold={selectedPlant.thresholds.ph}
+            threshold={selectedPlant.thresholds.pH}
             loading={phLoading}
             timestamp={latestPH?.timestamp}
           />
@@ -101,22 +114,54 @@ export function MobileDashboard({ className }: MobileDashboardProps) {
 
       {/* データタイプ選択 */}
       <MobileCard title="データ表示">
-        <div className="flex space-x-2">
-          {DATA_TYPE_OPTIONS.map((option) => (
-            <Button
-              key={option.value}
-              variant={selectedDataType === option.value ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedDataType(option.value)}
-              className="flex-1"
-            >
-              <div
-                className="w-3 h-3 rounded-full mr-2"
-                style={{ backgroundColor: option.color }}
+        <div className="space-y-3">
+          <div className="flex space-x-2">
+            {DATA_TYPE_OPTIONS.map((option) => (
+              <Button
+                key={option.value}
+                variant={selectedDataType === option.value ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedDataType(option.value)}
+                className="flex-1"
+              >
+                <div
+                  className="w-3 h-3 rounded-full mr-2"
+                  style={{ backgroundColor: option.color }}
+                />
+                {option.label}
+              </Button>
+            ))}
+          </div>
+          
+          {/* 自動更新チェックボックス */}
+          <div className="flex items-center justify-between">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
-              {option.label}
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                自動更新
+              </span>
+              {autoRefresh && (
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-green-600 dark:text-green-400">ON</span>
+                </div>
+              )}
+            </label>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefreshAll}
+              loading={tempLoading || phLoading}
+            >
+              更新
             </Button>
-          ))}
+          </div>
         </div>
       </MobileCard>
 

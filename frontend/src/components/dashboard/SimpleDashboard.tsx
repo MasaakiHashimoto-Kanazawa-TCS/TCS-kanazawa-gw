@@ -27,7 +27,7 @@ export function SimpleDashboard() {
         setTemperatureData(tempData);
 
         // pHデータを取得
-        const phDataResult = await sensorService.getDataByTimeRange('ph', '24h');
+        const phDataResult = await sensorService.getDataByTimeRange('pH', '24h');
         console.log('pH data:', phDataResult);
         setPhData(phDataResult);
 

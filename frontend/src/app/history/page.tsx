@@ -79,14 +79,14 @@ export default function HistoryPage() {
     loading: multiLoading,
     error: multiError,
     refetch: refreshMultiData
-  } = useMultiSensorData(['temperature', 'ph'], selectedTimeRange);
+  } = useMultiSensorData(['temperature', 'pH'], selectedTimeRange);
 
   // 統計情報の計算
   const stats = useMemo(() => {
     if (showComparison) {
       return {
         temperature: calculateDataStats(multiData.temperature || []),
-        ph: calculateDataStats(multiData.ph || [])
+        pH: calculateDataStats(multiData.pH || [])
       };
     } else {
       return calculateDataStats(sensorData);
@@ -94,8 +94,8 @@ export default function HistoryPage() {
   }, [sensorData, multiData, showComparison]);
 
   // 型ガード関数
-  const isComparisonStats = (stats: any): stats is { temperature: any; ph: any } => {
-    return showComparison && 'temperature' in stats && 'ph' in stats;
+  const isComparisonStats = (stats: any): stats is { temperature: any; pH: any } => {
+    return showComparison && 'temperature' in stats && 'pH' in stats;
   };
 
   // カスタム期間データの取得
@@ -211,7 +211,7 @@ export default function HistoryPage() {
               {showComparison ? (
                 <ResponsiveComparisonChart
                   temperatureData={multiData.temperature || []}
-                  phData={multiData.ph || []}
+                  phData={multiData.pH || []}
                   timeRange={selectedTimeRange}
                 />
               ) : (
@@ -250,8 +250,8 @@ export default function HistoryPage() {
                         pH
                       </h4>
                       <ChartStats
-                        stats={stats.ph}
-                        dataType="ph"
+                        stats={stats.pH}
+                        dataType="pH"
                       />
                     </div>
                   </div>

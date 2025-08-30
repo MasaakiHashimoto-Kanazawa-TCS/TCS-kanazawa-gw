@@ -18,11 +18,12 @@ export interface DashboardOverviewProps {
   autoRefresh?: boolean;
 }
 
-export function DashboardOverview({ className, autoRefresh = true }: DashboardOverviewProps) {
+export function DashboardOverview({ className, autoRefresh: initialAutoRefresh = true }: DashboardOverviewProps) {
   console.log('DashboardOverview: Component rendering');
   
-  const [selectedDataType, setSelectedDataType] = useState<'temperature' | 'ph'>('temperature');
+  const [selectedDataType, setSelectedDataType] = useState<'temperature' | 'pH'>('temperature');
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
+  const [autoRefresh, setAutoRefresh] = useState(initialAutoRefresh);
 
   // 植物データの取得
   console.log('DashboardOverview: About to call usePlantData');
@@ -50,8 +51,8 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
     refreshData: refreshTemperature
   } = useSensorData({
     dataType: 'temperature',
-    autoRefresh,
-    realtime: true
+    autoRefresh: autoRefresh,
+    realtime: autoRefresh
   });
 
   // センサーデータの取得（pH）
@@ -61,9 +62,9 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
     error: phError,
     refreshData: refreshPH
   } = useSensorData({
-    dataType: 'ph',
-    autoRefresh,
-    realtime: true
+    dataType: 'pH',
+    autoRefresh: autoRefresh,
+    realtime: autoRefresh
   });
 
   // アラート管理
@@ -88,7 +89,7 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
 
   useEffect(() => {
     if (selectedPlant && latestPH) {
-      generateAlertsFromData([latestPH], 'ph');
+      generateAlertsFromData([latestPH], 'pH');
     }
   }, [selectedPlant, latestPH, generateAlertsFromData]);
 
@@ -98,6 +99,8 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
       setLastUpdateTime(new Date());
     }
   }, [latestTemperature, latestPH]);
+
+
 
   // 全データの更新
   const handleRefreshAll = async () => {
@@ -170,6 +173,25 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
             </DotBadge>
           )}
 
+          {/* 自動更新チェックボックス */}
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={(e) => setAutoRefresh(e.target.checked)}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              自動更新
+            </span>
+            {autoRefresh && (
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-600 dark:text-green-400">ON</span>
+              </div>
+            )}
+          </label>
+
           {/* 更新ボタン */}
           <Button
             variant="outline"
@@ -200,7 +222,7 @@ export function DashboardOverview({ className, autoRefresh = true }: DashboardOv
           <MetricsGrid
             metrics={{
               temperature: latestTemperature?.value,
-              ph: latestPH?.value
+              pH: latestPH?.value
             }}
             thresholds={selectedPlant.thresholds}
             showTrends={true}

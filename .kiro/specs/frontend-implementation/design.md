@@ -215,7 +215,7 @@ interface PlantCardProps {
 interface MetricsGridProps {
   metrics: {
     temperature: number;
-    ph: number;
+    pH: number;
     // 将来的な拡張のための予約フィールド
     [key: string]: number;
   };
@@ -380,7 +380,7 @@ export interface ApiResponse<T> {
 }
 
 // src/types/sensor.ts
-export type DataType = 'temperature' | 'ph';
+export type DataType = 'temperature' | 'pH';
 // 将来的な拡張: 'humidity' | 'pressure' | 'soil_moisture' | 'light'
 
 export interface SensorData {
@@ -412,7 +412,7 @@ export interface Plant {
 
 export interface ThresholdConfig {
   temperature: { min: number; max: number };
-  ph: { min: number; max: number };
+  pH: { min: number; max: number };
   // 将来的な拡張のための予約フィールド
   [key: string]: { min: number; max: number };
 }

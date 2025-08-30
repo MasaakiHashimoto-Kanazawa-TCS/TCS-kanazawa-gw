@@ -3,10 +3,10 @@
  */
 
 // 現在サポートされているデータタイプ（将来の拡張を考慮）
-export type DataType = 'temperature' | 'ph';
+export type DataType = 'temperature' | 'pH';
 
 // 将来的な拡張のためのコメント
-// export type DataType = 'temperature' | 'ph' | 'humidity' | 'pressure' | 'soil_moisture' | 'light';
+// export type DataType = 'temperature' | 'pH' | 'humidity' | 'pressure' | 'soil_moisture' | 'light';
 
 export interface SensorData {
   timestamp: string; // ISO 8601形式

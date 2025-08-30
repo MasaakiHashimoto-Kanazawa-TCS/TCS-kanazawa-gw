@@ -15,7 +15,7 @@ export interface Plant {
 
 export interface ThresholdConfig {
   temperature: { min: number; max: number };
-  ph: { min: number; max: number };
+  pH: { min: number; max: number };
   // 将来的な拡張のための予約フィールド
   [key: string]: { min: number; max: number };
 }
@@ -46,12 +46,12 @@ export const DEFAULT_PLANT: Plant = {
   updated_at: new Date().toISOString(),
   thresholds: {
     temperature: { min: 18, max: 28 },
-    ph: { min: 6.0, max: 7.5 }
+    pH: { min: 6.0, max: 7.5 }
   }
 };
 
 // デフォルト閾値設定
 export const DEFAULT_THRESHOLDS: ThresholdConfig = {
   temperature: { min: 18, max: 28 },
-  ph: { min: 6.0, max: 7.5 }
+  pH: { min: 6.0, max: 7.5 }
 };

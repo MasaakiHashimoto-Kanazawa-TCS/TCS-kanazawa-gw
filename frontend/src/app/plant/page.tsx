@@ -24,6 +24,13 @@ export default function PlantDetailPage() {
   const [customLoading, setCustomLoading] = useState(false);
   const [customError, setCustomError] = useState<string | null>(null);
 
+  // 植物詳細用の最新データ
+  const [latestTemperatureData, setLatestTemperatureData] = useState<SensorData | null>(null);
+  const [latestPhData, setLatestPhData] = useState<SensorData | null>(null);
+
+  // 自動更新の状態
+  const [autoRefresh, setAutoRefresh] = useState(true);
+
   // 植物データの取得
   const { selectedPlant, loading: plantLoading } = usePlantData();
 
@@ -38,8 +45,8 @@ export default function PlantDetailPage() {
   } = useSensorData({
     dataType: selectedDataType,
     timeRange: selectedTimeRange,
-    autoRefresh: true,
-    realtime: true
+    autoRefresh: autoRefresh,
+    realtime: autoRefresh
   });
 
   // アラート情報
@@ -52,7 +59,7 @@ export default function PlantDetailPage() {
   const fetchCustomData = async (range: CustomTimeRange) => {
     setCustomLoading(true);
     setCustomError(null);
-    
+
     try {
       const data = await sensorService.getDataByCustomRange(
         selectedDataType,
@@ -67,12 +74,42 @@ export default function PlantDetailPage() {
     }
   };
 
+  // 植物詳細用の最新データを取得
+  const fetchLatestData = async () => {
+    try {
+      const [tempData, phData] = await Promise.all([
+        sensorService.getLatestData('temperature'),
+        sensorService.getLatestData('pH')
+      ]);
+      setLatestTemperatureData(tempData);
+      setLatestPhData(phData);
+    } catch (error) {
+      console.error('Failed to fetch latest data for plant details:', error);
+    }
+  };
+
   // カスタム期間が変更された時の処理
   useEffect(() => {
     if (selectedTimeRange === 'custom' && customTimeRange) {
       fetchCustomData(customTimeRange);
     }
   }, [customTimeRange, selectedDataType]);
+
+  // 植物詳細用データの初期取得
+  useEffect(() => {
+    fetchLatestData();
+  }, []);
+
+  // 植物詳細用データの自動更新（useSensorDataとは独立）
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      fetchLatestData();
+    }, 30000); // 30秒間隔
+
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
 
   // データ更新処理
   const handleRefresh = () => {
@@ -81,6 +118,8 @@ export default function PlantDetailPage() {
     } else {
       refreshSensorData();
     }
+    // 植物詳細用データも更新
+    fetchLatestData();
   };
 
   if (plantLoading || !selectedPlant) {
@@ -127,8 +166,8 @@ export default function PlantDetailPage() {
           {/* 植物詳細情報 */}
           <PlantDetails
             plant={selectedPlant}
-            temperatureData={selectedDataType === 'temperature' ? latestData : undefined}
-            phData={selectedDataType === 'ph' ? latestData : undefined}
+            temperatureData={latestTemperatureData || undefined}
+            phData={latestPhData || undefined}
           />
 
           {/* アクティブアラート */}
@@ -151,12 +190,12 @@ export default function PlantDetailPage() {
                     >
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
-                          <Badge 
-                            variant="danger" 
+                          <Badge
+                            variant="danger"
                             size="sm"
                           >
-                            {alert.severity === 'high' ? '緊急' : 
-                             alert.severity === 'medium' ? '警告' : '注意'}
+                            {alert.severity === 'high' ? '緊急' :
+                              alert.severity === 'medium' ? '警告' : '注意'}
                           </Badge>
                           <span className="text-sm font-medium text-red-800 dark:text-red-200">
                             {alert.message}
@@ -191,6 +230,8 @@ export default function PlantDetailPage() {
                 showDataTypeSelector={true}
                 isLoading={selectedTimeRange === 'custom' ? customLoading : sensorLoading}
                 onRefresh={handleRefresh}
+                autoRefresh={autoRefresh}
+                onAutoRefreshChange={setAutoRefresh}
               />
             </CardContent>
           </Card>
@@ -242,7 +283,7 @@ export default function PlantDetailPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     pH範囲
@@ -250,11 +291,11 @@ export default function PlantDetailPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">最小値:</span>
-                      <span className="font-medium">pH {selectedPlant.thresholds.ph.min}</span>
+                      <span className="font-medium">pH {selectedPlant.thresholds.pH.min}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">最大値:</span>
-                      <span className="font-medium">pH {selectedPlant.thresholds.ph.max}</span>
+                      <span className="font-medium">pH {selectedPlant.thresholds.pH.max}</span>
                     </div>
                   </div>
                 </div>

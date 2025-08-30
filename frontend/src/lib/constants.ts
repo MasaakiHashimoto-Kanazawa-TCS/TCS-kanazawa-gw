@@ -26,7 +26,7 @@ export const REALTIME_UPDATE_INTERVAL = 5000; // 5秒
 // チャート設定
 export const CHART_COLORS = {
   temperature: '#ef4444', // red-500
-  ph: '#8b5cf6', // violet-500
+  pH: '#8b5cf6', // violet-500
   primary: '#3b82f6', // blue-500
   secondary: '#10b981', // emerald-500
   warning: '#f59e0b', // amber-500
@@ -47,7 +47,7 @@ export const TIME_RANGE_OPTIONS = [
 // データタイプオプション
 export const DATA_TYPE_OPTIONS = [
   { value: 'temperature' as const, label: '温度', unit: '°C', color: CHART_COLORS.temperature },
-  { value: 'ph' as const, label: 'pH', unit: '', color: CHART_COLORS.ph }
+  { value: 'pH' as const, label: 'pH', unit: '', color: CHART_COLORS.pH }
 ];
 
 // アラート設定
@@ -87,5 +87,5 @@ export const DEFAULT_SETTINGS = {
 export const SYSTEM_CONFIG = {
   DEFAULT_DEVICE_ID: 'sensor_001',
   DEFAULT_LOCATION: '温室A',
-  SUPPORTED_DATA_TYPES: ['temperature', 'ph'] as const
+  SUPPORTED_DATA_TYPES: ['temperature', 'pH'] as const
 } as const;

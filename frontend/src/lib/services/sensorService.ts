@@ -28,7 +28,7 @@ export class SensorService {
       const response = await apiClient.get<any[]>(API_ENDPOINTS.DATA, params);
       console.log('API response:', response);
       
-      const transformedData = transformDynamoDBData(response);
+      const transformedData = transformSensorData(response);
       console.log('Transformed data:', transformedData);
       
       return transformedData;

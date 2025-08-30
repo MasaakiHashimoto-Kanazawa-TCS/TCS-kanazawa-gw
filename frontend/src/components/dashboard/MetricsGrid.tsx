@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 export interface MetricsGridProps {
   metrics: {
     temperature?: number;
-    ph?: number;
+    pH?: number;
     [key: string]: number | undefined;
   };
   thresholds: ThresholdConfig;
@@ -20,7 +20,7 @@ export interface MetricsGridProps {
   showTrends?: boolean;
   previousMetrics?: {
     temperature?: number;
-    ph?: number;
+    pH?: number;
     [key: string]: number | undefined;
   };
 }
@@ -178,11 +178,11 @@ export function MetricsGrid({
       threshold: thresholds.temperature
     },
     {
-      key: 'ph',
+      key: 'pH',
       title: 'pH',
       unit: '',
       icon: '⚗️',
-      threshold: thresholds.ph
+      threshold: thresholds.pH
     }
   ];
 
@@ -209,7 +209,7 @@ export function MetricsGrid({
 export interface SummaryMetricsProps {
   data: {
     temperature?: { current: number; avg: number; min: number; max: number };
-    ph?: { current: number; avg: number; min: number; max: number };
+    pH?: { current: number; avg: number; min: number; max: number };
   };
   thresholds: ThresholdConfig;
   className?: string;
@@ -223,7 +223,7 @@ export function SummaryMetrics({ data, thresholds, className }: SummaryMetricsPr
         
         const config = key === 'temperature' 
           ? { title: '温度', unit: '°C', icon: '🌡️', threshold: thresholds.temperature }
-          : { title: 'pH', unit: '', icon: '⚗️', threshold: thresholds.ph };
+          : { title: 'pH', unit: '', icon: '⚗️', threshold: thresholds.pH };
 
         return (
           <Card key={key}>

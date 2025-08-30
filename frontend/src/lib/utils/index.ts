@@ -55,7 +55,7 @@ export function formatValue(value: number, dataType: string): string {
   switch (dataType) {
     case 'temperature':
       return formatTemperature(value);
-    case 'ph':
+    case 'pH':
       return formatPH(value);
     default:
       return formatNumber(value);
@@ -68,7 +68,7 @@ export function formatValue(value: number, dataType: string): string {
 export function getDataTypeLabel(dataType: string): string {
   const labels: Record<string, string> = {
     temperature: '温度',
-    ph: 'pH'
+    pH: 'pH'
   };
   return labels[dataType] || dataType;
 }

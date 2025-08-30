@@ -203,7 +203,7 @@ async def get_plants():
             "updated_at": datetime.now().isoformat() + "Z",
             "thresholds": {
                 "temperature": {"min": 18, "max": 28},
-                "ph": {"min": 6.0, "max": 7.5}
+                "pH": {"min": 6.0, "max": 7.5}
             }
         }
     ]

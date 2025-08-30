@@ -35,7 +35,7 @@ export function validateSensorDataArray(data: any[]): SensorData[] {
  * データタイプのバリデーション
  */
 export function validateDataType(dataType: any): dataType is DataType {
-  return typeof dataType === 'string' && ['temperature', 'ph'].includes(dataType);
+  return typeof dataType === 'string' && ['temperature', 'pH'].includes(dataType);
 }
 
 /**
@@ -46,7 +46,7 @@ export function validateThresholdConfig(config: any): config is ThresholdConfig 
     return false;
   }
 
-  const requiredKeys = ['temperature', 'ph'];
+  const requiredKeys = ['temperature', 'pH'];
   
   for (const key of requiredKeys) {
     const threshold = config[key];
@@ -123,7 +123,7 @@ export function validateValueForDataType(value: number, dataType: DataType): boo
   switch (dataType) {
     case 'temperature':
       return validateTemperature(value);
-    case 'ph':
+    case 'pH':
       return validatePH(value);
     default:
       return isFinite(value);

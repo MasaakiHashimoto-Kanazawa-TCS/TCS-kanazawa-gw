@@ -48,7 +48,7 @@ export function PlantCard({
 
     // pHチェック
     if (phData) {
-      const phThreshold = plant.thresholds.ph;
+      const phThreshold = plant.thresholds.pH;
       if (!isWithinThreshold(phData.value, phThreshold)) {
         if (phData.value < phThreshold.min) {
           issues.push('pHが低すぎます（酸性）');
@@ -168,17 +168,17 @@ export function PlantCard({
                     {phData && (
                       <span className={cn(
                         'text-sm font-bold',
-                        isWithinThreshold(phData.value, plant.thresholds.ph)
+                        isWithinThreshold(phData.value, plant.thresholds.pH)
                           ? 'text-green-600 dark:text-green-400'
                           : 'text-red-600 dark:text-red-400'
                       )}>
-                        {formatValue(phData.value, 'ph')}
+                        {formatValue(phData.value, 'pH')}
                       </span>
                     )}
                   </div>
                   {phData && (
                     <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      範囲: pH {plant.thresholds.ph.min} - {plant.thresholds.ph.max}
+                      範囲: pH {plant.thresholds.pH.min} - {plant.thresholds.pH.max}
                     </div>
                   )}
                   {!phData && (
@@ -238,7 +238,7 @@ export function CompactPlantCard({
       status = temperatureData.value > plant.thresholds.temperature.max ? 'critical' : 'warning';
     }
 
-    if (phData && !isWithinThreshold(phData.value, plant.thresholds.ph)) {
+    if (phData && !isWithinThreshold(phData.value, plant.thresholds.pH)) {
       status = status === 'critical' ? 'critical' : 'warning';
     }
 
@@ -280,7 +280,7 @@ export function CompactPlantCard({
         {phData && (
           <div className="text-right">
             <div className="text-sm font-medium">
-              {formatValue(phData.value, 'ph')}
+              {formatValue(phData.value, 'pH')}
             </div>
             <div className="text-xs text-gray-500">pH</div>
           </div>

@@ -58,9 +58,9 @@ export function TimeSeriesChart({
           label: '温度',
           domain: ['dataMin - 2', 'dataMax + 2']
         };
-      case 'ph':
+      case 'pH':
         return {
-          color: CHART_COLORS.ph,
+          color: CHART_COLORS.pH,
           unit: '',
           label: 'pH',
           domain: [0, 14]
@@ -338,7 +338,7 @@ export function ComparisonChart({
       const existing = merged.get(item.timestamp) || { timestamp: item.timestamp };
       merged.set(item.timestamp, { 
         ...existing, 
-        ph: item.value,
+        pH: item.value,
         formattedTime: item.formattedTime
       });
     });
@@ -360,7 +360,7 @@ export function ComparisonChart({
               {entry.dataKey === 'temperature' ? '温度' : 'pH'}: {' '}
               {entry.dataKey === 'temperature' 
                 ? formatValue(entry.value, 'temperature')
-                : formatValue(entry.value, 'ph')
+                : formatValue(entry.value, 'pH')
               }
             </p>
           ))}
@@ -448,7 +448,7 @@ export function ComparisonChart({
               tickFormatter={(value) => `${value}°C`}
             />
             <YAxis
-              yAxisId="ph"
+              yAxisId="pH"
               orientation="right"
               domain={[0, 14]}
               className="text-xs"
@@ -466,12 +466,12 @@ export function ComparisonChart({
               connectNulls={false}
             />
             <Line
-              yAxisId="ph"
+              yAxisId="pH"
               type="monotone"
-              dataKey="ph"
-              stroke={CHART_COLORS.ph}
+              dataKey="pH"
+              stroke={CHART_COLORS.pH}
               strokeWidth={2}
-              dot={{ fill: CHART_COLORS.ph, strokeWidth: 2, r: 3 }}
+              dot={{ fill: CHART_COLORS.pH, strokeWidth: 2, r: 3 }}
               connectNulls={false}
             />
           </LineChart>

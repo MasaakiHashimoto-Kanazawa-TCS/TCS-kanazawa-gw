@@ -17,13 +17,13 @@ export interface Alert {
 export type AlertType = 
   | 'temperature_high' 
   | 'temperature_low'
-  | 'ph_high'
-  | 'ph_low';
+  | 'pH_high'
+  | 'pH_low';
 
 // 将来的な拡張のためのコメント
 // export type AlertType = 
 //   | 'temperature_high' | 'temperature_low'
-//   | 'ph_high' | 'ph_low'
+//   | 'pH_high' | 'pH_low'
 //   | 'humidity_high' | 'humidity_low'
 //   | 'soil_moisture_low'
 //   | 'light_low';
@@ -57,16 +57,16 @@ export const ALERT_CONFIGS: Record<AlertType, AlertConfig> = {
     defaultMessage: '温度が設定された下限を下回っています',
     recommendedAction: '暖房を使用するか、暖かい場所に移動してください'
   },
-  ph_high: {
-    type: 'ph_high',
+  pH_high: {
+    type: 'pH_high',
     title: 'pHが高すぎます',
     color: 'purple',
     icon: '⚗️',
     defaultMessage: 'pHが設定された上限を超えています',
     recommendedAction: 'pH調整剤を使用して酸性にしてください'
   },
-  ph_low: {
-    type: 'ph_low',
+  pH_low: {
+    type: 'pH_low',
     title: 'pHが低すぎます',
     color: 'orange',
     icon: '🧪',
