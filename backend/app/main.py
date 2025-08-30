@@ -1,17 +1,31 @@
 from fastapi import FastAPI, Request, HTTPException, Query
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 import os
 from .config import settings
 from .services.dynamodb import DynamoDBService
 from .services.graph import GraphService
+from .api.v1 import router as api_v1_router
 
 app = FastAPI(
     title=settings.api_title,
     description=settings.api_description,
     version=settings.api_version
 )
+
+# CORS設定
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # フロントエンドのURL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# API v1ルーターを追加
+app.include_router(api_v1_router)
 
 # 現在のファイルのディレクトリを取得
 current_dir = os.path.dirname(os.path.abspath(__file__))

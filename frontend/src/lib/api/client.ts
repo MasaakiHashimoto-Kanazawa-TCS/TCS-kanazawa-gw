@@ -91,8 +91,14 @@ export class ApiClient {
       // レスポンスがJSONかどうかチェック
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
-        const data: ApiResponse<T> = await response.json();
+        const data = await response.json();
         
+        // 新しいAPIの場合、直接データを返す
+        if (Array.isArray(data) || typeof data === 'object') {
+          return data as T;
+        }
+        
+        // 古いAPIレスポンス形式の場合
         if (data.status === 'error') {
           throw new ApiError(
             response.status,
@@ -102,7 +108,7 @@ export class ApiClient {
           );
         }
 
-        return data.data as T;
+        return (data.data || data) as T;
       } else {
         // HTMLレスポンスの場合（現在のバックエンドAPI）
         const text = await response.text();

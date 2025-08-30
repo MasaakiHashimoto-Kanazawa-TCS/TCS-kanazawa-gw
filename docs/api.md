@@ -30,10 +30,8 @@ Plant Monitor Backend APIは、植物監視システムのデータ取得とグ�
 
 **data_type の有効な値:**
 - `temperature` - 温度
+- `pH` - 水素イオン指数
 - `humidity` - 湿度
-- `pressure` - 気圧
-- `soil_moisture` - 土壌水分
-- `light` - 光量
 
 **レスポンス:**
 - **Content-Type**: `text/html`
@@ -165,7 +163,7 @@ GET /?data_type=humidity&days=14
   "error": {
     "code": "INVALID_PARAMETER",
     "message": "Invalid data_type parameter",
-    "details": "data_type must be one of: temperature, humidity, pressure, soil_moisture, light"
+    "details": "data_type must be one of: temperature, pH"
   },
   "timestamp": "2025-01-26T10:30:00Z"
 }

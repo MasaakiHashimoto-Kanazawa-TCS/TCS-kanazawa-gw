@@ -14,16 +14,26 @@ export class SensorService {
    */
   async getData(params: GetDataParams): Promise<SensorData[]> {
     try {
+      console.log('SensorService.getData called with:', params);
+      console.log('IS_DEVELOPMENT:', IS_DEVELOPMENT);
+      
       // 現在のバックエンドAPIはHTML形式なので、開発中はモックデータを使用
       if (IS_DEVELOPMENT) {
+        console.log('Using mock data (development mode)');
         return this.getMockData(params.data_type, params.limit || 100);
       }
 
+      console.log('Calling API endpoint:', API_ENDPOINTS.DATA);
       // 将来のJSON API実装（DynamoDBデータ構造に対応）
       const response = await apiClient.get<any[]>(API_ENDPOINTS.DATA, params);
-      return transformDynamoDBData(response);
+      console.log('API response:', response);
+      
+      const transformedData = transformDynamoDBData(response);
+      console.log('Transformed data:', transformedData);
+      
+      return transformedData;
     } catch (error) {
-      console.warn('Failed to fetch real data, using mock data:', error);
+      console.error('Failed to fetch real data, using mock data:', error);
       return this.getMockData(params.data_type, params.limit || 100);
     }
   }
@@ -56,17 +66,28 @@ export class SensorService {
    */
   async getSummary(params: GetSummaryParams): Promise<DataSummary> {
     try {
+      console.log('SensorService.getSummary called with:', params);
+      
       // 開発中はモックデータから計算
       if (IS_DEVELOPMENT) {
+        console.log('Using mock data for summary (development mode)');
         const mockData = this.getMockData(params.data_type, 100);
         return this.calculateSummary(mockData, params.period || 'day');
       }
 
-      // 将来のJSON API実装
-      const response = await apiClient.get<DataSummary>(API_ENDPOINTS.SUMMARY, params);
+      // 実際のAPIを呼び出す際は、広い期間を指定
+      const apiParams = {
+        ...params,
+        period: 'year' // 1年間のデータでサマリーを計算
+      };
+      
+      console.log('Calling summary API with params:', apiParams);
+      const response = await apiClient.get<DataSummary>(API_ENDPOINTS.SUMMARY, apiParams);
+      console.log('Summary API response:', response);
+      
       return response;
     } catch (error) {
-      console.warn('Failed to fetch summary, using mock data:', error);
+      console.error('Failed to fetch summary, using mock data:', error);
       const mockData = this.getMockData(params.data_type, 100);
       return this.calculateSummary(mockData, params.period || 'day');
     }
