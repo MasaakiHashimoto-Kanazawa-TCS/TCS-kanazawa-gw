@@ -76,7 +76,11 @@ export function usePlantData(): UsePlantDataResult {
   const refreshData = useCallback(async () => {
     try {
       setIsRefetching(true);
-      const plantsData = await plantService.getPlants();
+      
+      // 初回データ取得と同じロジックを使用
+      const plantsData = [DEFAULT_PLANT];
+      console.log('usePlantData: Refresh using DEFAULT_PLANT:', plantsData);
+      
       setPlantsData(plantsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to refresh plants');

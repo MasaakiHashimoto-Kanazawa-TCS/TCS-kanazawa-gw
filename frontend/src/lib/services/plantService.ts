@@ -19,7 +19,14 @@ export class PlantService {
       // 開発中は単一植物のモックデータを使用
       if (IS_DEVELOPMENT) {
         console.log('PlantService.getPlants: Using mock data, DEFAULT_PLANT:', DEFAULT_PLANT);
-        return [DEFAULT_PLANT];
+        // 常に同じ構造のオブジェクトを返すように、スプレッド演算子で新しいオブジェクトを作成
+        return [{
+          ...DEFAULT_PLANT,
+          thresholds: {
+            temperature: { ...DEFAULT_PLANT.thresholds.temperature },
+            pH: { ...DEFAULT_PLANT.thresholds.pH }
+          }
+        }];
       }
 
       // 将来のJSON API実装
@@ -40,7 +47,14 @@ export class PlantService {
     try {
       // 開発中はデフォルト植物を返す
       if (IS_DEVELOPMENT) {
-        return { ...DEFAULT_PLANT, id };
+        return { 
+          ...DEFAULT_PLANT, 
+          id,
+          thresholds: {
+            temperature: { ...DEFAULT_PLANT.thresholds.temperature },
+            pH: { ...DEFAULT_PLANT.thresholds.pH }
+          }
+        };
       }
 
       // 将来のJSON API実装

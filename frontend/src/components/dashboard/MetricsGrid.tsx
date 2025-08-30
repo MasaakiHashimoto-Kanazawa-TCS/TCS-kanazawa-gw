@@ -15,7 +15,7 @@ export interface MetricsGridProps {
     pH?: number;
     [key: string]: number | undefined;
   };
-  thresholds: ThresholdConfig;
+  thresholds: ThresholdConfig | undefined;
   className?: string;
   showTrends?: boolean;
   previousMetrics?: {
@@ -30,26 +30,26 @@ interface MetricCardProps {
   value: number | undefined;
   unit: string;
   icon: string;
-  threshold: { min: number; max: number };
+  threshold: { min: number; max: number } | undefined;
   trend?: 'up' | 'down' | 'stable';
   className?: string;
 }
 
-function MetricCard({ 
-  title, 
-  value, 
-  unit, 
-  icon, 
-  threshold, 
+function MetricCard({
+  title,
+  value,
+  unit,
+  icon,
+  threshold,
   trend,
-  className 
+  className
 }: MetricCardProps) {
-  const isHealthy = value !== undefined ? isWithinThreshold(value, threshold) : null;
-  
-  const statusColor = isHealthy === null 
-    ? 'text-gray-400' 
-    : isHealthy 
-      ? 'text-green-600 dark:text-green-400' 
+  const isHealthy = value !== undefined && threshold ? isWithinThreshold(value, threshold) : null;
+
+  const statusColor = isHealthy === null
+    ? 'text-gray-400'
+    : isHealthy
+      ? 'text-green-600 dark:text-green-400'
       : 'text-red-600 dark:text-red-400';
 
   const bgColor = isHealthy === null
@@ -66,7 +66,7 @@ function MetricCard({
 
   const getTrendIcon = () => {
     if (!trend) return null;
-    
+
     switch (trend) {
       case 'up':
         return (
@@ -114,7 +114,7 @@ function MetricCard({
             <span className={cn('text-2xl font-bold', statusColor)}>
               {value !== undefined ? formatValue(value, title.toLowerCase()) : '--'}
             </span>
-            <Badge 
+            <Badge
               variant={isHealthy === null ? 'default' : isHealthy ? 'success' : 'danger'}
               size="sm"
             >
@@ -124,11 +124,15 @@ function MetricCard({
 
           {/* 閾値範囲 */}
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            正常範囲: {threshold.min}{unit} - {threshold.max}{unit}
+            {threshold ? (
+              <>正常範囲: {threshold.min}{unit} - {threshold.max}{unit}</>
+            ) : (
+              '閾値未設定'
+            )}
           </div>
 
           {/* 閾値からの乖離度を視覚的に表示 */}
-          {value !== undefined && (
+          {value !== undefined && threshold && (
             <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
               <div
                 className={cn(
@@ -136,7 +140,7 @@ function MetricCard({
                   isHealthy ? 'bg-green-500' : 'bg-red-500'
                 )}
                 style={{
-                  width: `${Math.min(100, Math.max(0, 
+                  width: `${Math.min(100, Math.max(0,
                     ((value - threshold.min) / (threshold.max - threshold.min)) * 100
                   ))}%`
                 }}
@@ -149,22 +153,22 @@ function MetricCard({
   );
 }
 
-export function MetricsGrid({ 
-  metrics, 
-  thresholds, 
-  className, 
+export function MetricsGrid({
+  metrics,
+  thresholds,
+  className,
   showTrends = false,
-  previousMetrics 
+  previousMetrics
 }: MetricsGridProps) {
   // トレンドの計算
   const getTrend = (current?: number, previous?: number): 'up' | 'down' | 'stable' | undefined => {
     if (!showTrends || current === undefined || previous === undefined) {
       return undefined;
     }
-    
+
     const diff = current - previous;
     const threshold = 0.1; // 変化の閾値
-    
+
     if (Math.abs(diff) < threshold) return 'stable';
     return diff > 0 ? 'up' : 'down';
   };
@@ -175,14 +179,14 @@ export function MetricsGrid({
       title: '温度',
       unit: '°C',
       icon: '🌡️',
-      threshold: thresholds.temperature
+      threshold: thresholds?.temperature
     },
     {
       key: 'pH',
       title: 'pH',
       unit: '',
       icon: '⚗️',
-      threshold: thresholds.pH
+      threshold: thresholds?.pH
     }
   ];
 
@@ -220,8 +224,8 @@ export function SummaryMetrics({ data, thresholds, className }: SummaryMetricsPr
     <div className={cn('space-y-4', className)}>
       {Object.entries(data).map(([key, values]) => {
         if (!values) return null;
-        
-        const config = key === 'temperature' 
+
+        const config = key === 'temperature'
           ? { title: '温度', unit: '°C', icon: '🌡️', threshold: thresholds.temperature }
           : { title: 'pH', unit: '', icon: '⚗️', threshold: thresholds.pH };
 
@@ -234,7 +238,7 @@ export function SummaryMetrics({ data, thresholds, className }: SummaryMetricsPr
                   {config.title}
                 </h3>
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <div className="text-gray-500 dark:text-gray-400">現在</div>

@@ -118,8 +118,11 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function isWithinThreshold(
   value: number,
-  threshold: { min: number; max: number }
+  threshold: { min: number; max: number } | undefined
 ): boolean {
+  if (!threshold) {
+    return true; // 閾値が設定されていない場合は常に正常とみなす
+  }
   return value >= threshold.min && value <= threshold.max;
 }
 
@@ -128,8 +131,11 @@ export function isWithinThreshold(
  */
 export function getThresholdViolationType(
   value: number,
-  threshold: { min: number; max: number }
+  threshold: { min: number; max: number } | undefined
 ): 'high' | 'low' | null {
+  if (!threshold) {
+    return null; // 閾値が設定されていない場合は違反なし
+  }
   if (value > threshold.max) return 'high';
   if (value < threshold.min) return 'low';
   return null;

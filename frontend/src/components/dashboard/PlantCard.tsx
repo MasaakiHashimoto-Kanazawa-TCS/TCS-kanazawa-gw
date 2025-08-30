@@ -33,7 +33,7 @@ export function PlantCard({
     let status: 'healthy' | 'warning' | 'critical' = 'healthy';
 
     // 温度チェック
-    if (temperatureData) {
+    if (temperatureData && plant.thresholds?.temperature) {
       const tempThreshold = plant.thresholds.temperature;
       if (!isWithinThreshold(temperatureData.value, tempThreshold)) {
         if (temperatureData.value < tempThreshold.min) {
@@ -47,7 +47,7 @@ export function PlantCard({
     }
 
     // pHチェック
-    if (phData) {
+    if (phData && plant.thresholds?.pH) {
       const phThreshold = plant.thresholds.pH;
       if (!isWithinThreshold(phData.value, phThreshold)) {
         if (phData.value < phThreshold.min) {
@@ -140,7 +140,7 @@ export function PlantCard({
                     {temperatureData && (
                       <span className={cn(
                         'text-sm font-bold',
-                        isWithinThreshold(temperatureData.value, plant.thresholds.temperature)
+                        plant.thresholds?.temperature && isWithinThreshold(temperatureData.value, plant.thresholds.temperature)
                           ? 'text-green-600 dark:text-green-400'
                           : 'text-red-600 dark:text-red-400'
                       )}>
@@ -148,7 +148,7 @@ export function PlantCard({
                       </span>
                     )}
                   </div>
-                  {temperatureData && (
+                  {temperatureData && plant.thresholds?.temperature && (
                     <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       範囲: {plant.thresholds.temperature.min}°C - {plant.thresholds.temperature.max}°C
                     </div>
@@ -168,7 +168,7 @@ export function PlantCard({
                     {phData && (
                       <span className={cn(
                         'text-sm font-bold',
-                        isWithinThreshold(phData.value, plant.thresholds.pH)
+                        plant.thresholds?.pH && isWithinThreshold(phData.value, plant.thresholds.pH)
                           ? 'text-green-600 dark:text-green-400'
                           : 'text-red-600 dark:text-red-400'
                       )}>
@@ -176,7 +176,7 @@ export function PlantCard({
                       </span>
                     )}
                   </div>
-                  {phData && (
+                  {phData && plant.thresholds?.pH && (
                     <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       範囲: pH {plant.thresholds.pH.min} - {plant.thresholds.pH.max}
                     </div>
@@ -234,11 +234,11 @@ export function CompactPlantCard({
   const healthStatus = useMemo(() => {
     let status: 'healthy' | 'warning' | 'critical' = 'healthy';
 
-    if (temperatureData && !isWithinThreshold(temperatureData.value, plant.thresholds.temperature)) {
+    if (temperatureData && plant.thresholds?.temperature && !isWithinThreshold(temperatureData.value, plant.thresholds.temperature)) {
       status = temperatureData.value > plant.thresholds.temperature.max ? 'critical' : 'warning';
     }
 
-    if (phData && !isWithinThreshold(phData.value, plant.thresholds.pH)) {
+    if (phData && plant.thresholds?.pH && !isWithinThreshold(phData.value, plant.thresholds.pH)) {
       status = status === 'critical' ? 'critical' : 'warning';
     }
 
