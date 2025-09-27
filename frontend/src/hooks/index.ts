@@ -22,6 +22,15 @@ export {
   useCachedCustomRangeData 
 } from './useCachedSensorData';
 
+export { useTabPrefetch } from './useTabPrefetch';
+export type { TabPrefetchConfig, TabPrefetchOptions } from './useTabPrefetch';
+
+export { usePagePreload } from './usePagePreload';
+export type { PagePreloadConfig, PagePreloadOptions } from './usePagePreload';
+
+export { useTabCache } from './useTabCache';
+export type { TabCacheConfig, TabCacheOptions } from './useTabCache';
+
 // アラート関連
 export { useAlerts, useAlertStats } from './useAlerts';
 export type { UseAlertsResult, UseAlertsOptions } from './useAlerts';

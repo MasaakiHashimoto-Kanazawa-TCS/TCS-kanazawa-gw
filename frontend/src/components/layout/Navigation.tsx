@@ -8,6 +8,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useTabPrefetch } from '@/hooks/useTabPrefetch';
 
 export interface NavigationItem {
   name: string;
@@ -64,6 +65,16 @@ const defaultNavigationItems: NavigationItem[] = [
 export function Navigation({ items = defaultNavigationItems, className }: NavigationProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // タブプリフェッチ機能
+  const { handleMouseEnter, handleMouseLeave } = useTabPrefetch({
+    enabled: true,
+    config: {
+      prefetchOnHover: true,
+      prefetchDelay: 150, // 150ms後にプリフェッチ開始
+      maxPrefetchConcurrency: 2
+    }
+  });
 
   const navigationItems = items.map(item => ({
     ...item,
@@ -86,6 +97,8 @@ export function Navigation({ items = defaultNavigationItems, className }: Naviga
                     ? 'border-green-500 text-gray-900 dark:text-white'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200'
                 )}
+                onMouseEnter={() => handleMouseEnter(item.href)}
+                onMouseLeave={() => handleMouseLeave(item.href)}
               >
                 {item.icon && (
                   <span className="mr-2">{item.icon}</span>
@@ -132,6 +145,8 @@ export function Navigation({ items = defaultNavigationItems, className }: Naviga
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700'
                 )}
                 onClick={() => setIsMobileMenuOpen(false)}
+                onMouseEnter={() => handleMouseEnter(item.href)}
+                onMouseLeave={() => handleMouseLeave(item.href)}
               >
                 <div className="flex items-center">
                   {item.icon && (
