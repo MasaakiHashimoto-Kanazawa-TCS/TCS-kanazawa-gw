@@ -6,11 +6,21 @@
 export { useApiData } from './useApiData';
 export type { UseApiDataResult, UseApiDataOptions } from './useApiData';
 
+export { useCachedApiData } from './useCachedApiData';
+export type { CachedApiDataResult, CachedApiDataOptions, CacheConfig } from './useCachedApiData';
+
 export { usePlantData, usePlant } from './usePlantData';
 export type { UsePlantDataResult } from './usePlantData';
 
 export { useSensorData, useMultiSensorData } from './useSensorData';
 export type { UseSensorDataResult, UseSensorDataOptions } from './useSensorData';
+
+export { 
+  useCachedSensorData, 
+  useCachedSensorSummary, 
+  useCachedTimeRangeData, 
+  useCachedCustomRangeData 
+} from './useCachedSensorData';
 
 // アラート関連
 export { useAlerts, useAlertStats } from './useAlerts';
