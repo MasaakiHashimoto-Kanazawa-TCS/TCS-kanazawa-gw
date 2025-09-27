@@ -5,7 +5,6 @@
 import type { Plant, CreatePlantRequest, UpdatePlantRequest } from '@/types';
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS, buildEndpoint } from '@/lib/api/endpoints';
-import { DEFAULT_PLANT } from '@/types';
 import { IS_DEVELOPMENT } from '@/lib/constants';
 
 export class PlantService {
@@ -16,27 +15,27 @@ export class PlantService {
     try {
       console.log('PlantService.getPlants: Starting, IS_DEVELOPMENT:', IS_DEVELOPMENT);
 
-      // 開発中は単一植物のモックデータを使用
-      if (IS_DEVELOPMENT) {
-        console.log('PlantService.getPlants: Using mock data, DEFAULT_PLANT:', DEFAULT_PLANT);
-        // 常に同じ構造のオブジェクトを返すように、スプレッド演算子で新しいオブジェクトを作成
-        return [{
-          ...DEFAULT_PLANT,
-          thresholds: {
-            temperature: { ...DEFAULT_PLANT.thresholds.temperature },
-            pH: { ...DEFAULT_PLANT.thresholds.pH }
-          }
-        }];
-      }
-
-      // 将来のJSON API実装
-      console.log('PlantService.getPlants: Calling API');
+      // バックエンドAPIから植物データを取得
+      console.log('PlantService.getPlants: Calling backend API');
       const response = await apiClient.get<Plant[]>(API_ENDPOINTS.PLANTS);
-      console.log('PlantService.getPlants: API response:', response);
+      console.log('PlantService.getPlants: Backend API response:', response);
       return response;
     } catch (error) {
-      console.warn('Failed to fetch plants, using mock data:', error);
-      return [DEFAULT_PLANT];
+      console.warn('Failed to fetch plants from backend API, using fallback data:', error);
+      // フォールバック用のデフォルトデータ
+      return [{
+        id: 'plant-001',
+        name: 'トマト',
+        species: 'Solanum lycopersicum',
+        location: '金沢支店',
+        device_id: 'sensor_001',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        thresholds: {
+          temperature: { min: 18, max: 28 },
+          pH: { min: 6.0, max: 7.5 }
+        }
+      }];
     }
   }
 
@@ -45,24 +44,29 @@ export class PlantService {
    */
   async getPlant(id: string): Promise<Plant> {
     try {
-      // 開発中はデフォルト植物を返す
-      if (IS_DEVELOPMENT) {
-        return { 
-          ...DEFAULT_PLANT, 
-          id,
-          thresholds: {
-            temperature: { ...DEFAULT_PLANT.thresholds.temperature },
-            pH: { ...DEFAULT_PLANT.thresholds.pH }
-          }
-        };
-      }
+      console.log('PlantService.getPlant: Starting for ID:', id);
 
-      // 将来のJSON API実装
-      const response = await apiClient.get<Plant>(buildEndpoint.plant(id));
+      // バックエンドAPIから植物データを取得
+      console.log('PlantService.getPlant: Calling backend API for ID:', id);
+      const response = await apiClient.get<Plant>(buildEndpoint(API_ENDPOINTS.PLANT_DETAIL, { id }));
+      console.log('PlantService.getPlant: Backend API response:', response);
       return response;
     } catch (error) {
-      console.warn('Failed to fetch plant, using mock data:', error);
-      return { ...DEFAULT_PLANT, id };
+      console.warn('Failed to fetch plant from backend API, using fallback data:', error);
+      // フォールバック用のデフォルトデータ
+      return {
+        id: 'plant-001',
+        name: 'トマト',
+        species: 'Solanum lycopersicum',
+        location: '金沢支店',
+        device_id: 'sensor_001',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        thresholds: {
+          temperature: { min: 18, max: 28 },
+          pH: { min: 6.0, max: 7.5 }
+        }
+      };
     }
   }
 

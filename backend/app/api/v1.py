@@ -191,22 +191,36 @@ async def get_plants():
     """
     植物情報を取得
     """
-    # 現在は固定データを返す（将来的にはデータベースから取得）
-    return [
-        {
-            "id": "plant-001",
-            "name": "バジル",
-            "species": "Ocimum basilicum",
-            "location": "温室A",
-            "device_id": "sensor_001",
-            "created_at": "2025-01-01T00:00:00Z",
-            "updated_at": datetime.now().isoformat() + "Z",
-            "thresholds": {
-                "temperature": {"min": 18, "max": 28},
-                "pH": {"min": 6.0, "max": 7.5}
+    import json
+    import os
+    
+    try:
+        # JSONファイルから植物データを読み込み
+        json_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'plant.json')
+        with open(json_path, 'r', encoding='utf-8') as f:
+            plant_data = json.load(f)
+        
+        # 更新時刻を現在時刻に設定
+        plant_data["updated_at"] = datetime.now().isoformat() + "Z"
+        
+        return [plant_data]
+    except Exception as e:
+        # フォールバック用のデフォルトデータ
+        return [
+            {
+                "id": "plant-001",
+                "name": "バジル",
+                "species": "Ocimum basilicum",
+                "location": "温室A",
+                "device_id": "sensor_001",
+                "created_at": "2025-01-01T00:00:00Z",
+                "updated_at": datetime.now().isoformat() + "Z",
+                "thresholds": {
+                    "temperature": {"min": 18, "max": 28},
+                    "pH": {"min": 6.0, "max": 7.5}
+                }
             }
-        }
-    ]
+        ]
 
 @router.get("/health")
 async def health_check():

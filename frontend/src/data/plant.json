@@ -1,0 +1,19 @@
+{
+  "id": "plant-001",
+  "name": "トマト",
+  "species": "Solanum lycopersicum",
+  "location": "金沢支店",
+  "device_id": "sensor_001",
+  "created_at": "2025-01-01T00:00:00Z",
+  "updated_at": "2025-01-26T10:30:00Z",
+  "thresholds": {
+    "temperature": {
+      "min": 18,
+      "max": 28
+    },
+    "pH": {
+      "min": 6.0,
+      "max": 7.5
+    }
+  }
+}

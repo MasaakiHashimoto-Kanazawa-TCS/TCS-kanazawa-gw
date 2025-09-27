@@ -4,10 +4,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import type { Plant } from '@/types';
-import { DEFAULT_PLANT } from '@/types';
-import { plantService } from '@/lib/services';
 import { useApiData } from './useApiData';
 import { DATA_REFRESH_INTERVAL } from '@/lib/constants';
+import { plantService } from '@/lib/services';
 
 export interface UsePlantDataResult {
   plants: Plant[];
@@ -31,17 +30,17 @@ export function usePlantData(): UsePlantDataResult {
   const [error, setError] = useState<string | null>(null);
   const [isRefetching, setIsRefetching] = useState(false);
 
-  // 直接植物データを取得
+  // バックエンドAPIから植物データを取得
   useEffect(() => {
     const fetchPlants = async () => {
       try {
-        console.log('usePlantData: Direct fetch starting');
+        console.log('usePlantData: Loading from backend API');
         setLoading(true);
         setError(null);
 
-        // 一時的に直接DEFAULT_PLANTを使用
-        const plantsData = [DEFAULT_PLANT];
-        console.log('usePlantData: Using DEFAULT_PLANT directly:', plantsData);
+        // バックエンドAPIから植物データを取得
+        const plantsData = await plantService.getPlants();
+        console.log('usePlantData: Using backend API plant data:', plantsData);
 
         setPlantsData(plantsData);
 
@@ -51,8 +50,8 @@ export function usePlantData(): UsePlantDataResult {
           setSelectedPlantId(plantsData[0].id);
         }
       } catch (err) {
-        console.error('usePlantData: Direct fetch error:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch plants');
+        console.error('usePlantData: Backend API fetch error:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load plant data from backend API');
       } finally {
         console.log('usePlantData: Setting loading to false');
         setLoading(false);
@@ -77,13 +76,13 @@ export function usePlantData(): UsePlantDataResult {
     try {
       setIsRefetching(true);
       
-      // 初回データ取得と同じロジックを使用
-      const plantsData = [DEFAULT_PLANT];
-      console.log('usePlantData: Refresh using DEFAULT_PLANT:', plantsData);
+      // バックエンドAPIから植物データを再取得
+      const plantsData = await plantService.getPlants();
+      console.log('usePlantData: Refresh using backend API data:', plantsData);
       
       setPlantsData(plantsData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh plants');
+      setError(err instanceof Error ? err.message : 'Failed to refresh plant data from backend API');
     } finally {
       setIsRefetching(false);
     }
