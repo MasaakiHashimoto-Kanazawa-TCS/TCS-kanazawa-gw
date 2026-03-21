@@ -9,6 +9,7 @@
 ### 現状分析
 
 **特定された問題:**
+
 1. **一貫性のない依存関係管理**: PlantMonitorに`pyproject.toml`と`requirements.txt`の両方があり、バージョン競合が発生
 2. **設定ファイルの不足**: PlantMonitorPageに`package.json`と適切なNext.js設定が不足
 3. **不完全なドキュメント**: ルートREADME.mdが最小限で、コンポーネントのREADMEが不足
@@ -16,6 +17,7 @@
 5. **混在する設定アプローチ**: 異なるコンポーネントが異なる設定パターンを使用
 
 **目標アーキテクチャ:**
+
 ```
 TCS-kanazawa-gw/
 ├── README.md                    # 包括的なプロジェクト概要
@@ -49,6 +51,7 @@ TCS-kanazawa-gw/
 ### 1. バックエンドコンポーネント (FastAPI)
 
 **構造:**
+
 ```
 backend/
 ├── README.md                    # セットアップとAPIドキュメント
@@ -74,6 +77,7 @@ backend/
 ```
 
 **主な変更点:**
+
 - `requirements.txt`を削除し、`pyproject.toml`のみを使用
 - 適切な設定管理を追加
 - コードを論理的なモジュールに整理
@@ -82,6 +86,7 @@ backend/
 ### 2. フロントエンドコンポーネント (Next.js)
 
 **構造:**
+
 ```
 frontend/
 ├── README.md                   # セットアップと開発ガイド
@@ -105,6 +110,7 @@ frontend/
 ```
 
 **主な変更点:**
+
 - 適切な依存関係を持つ`package.json`を作成
 - Next.js設定ファイルを追加
 - 適切なTypeScriptセットアップを実装
@@ -119,6 +125,7 @@ frontend/
 ### 設定管理
 
 **バックエンド設定 (`backend/app/config.py`):**
+
 ```python
 from pydantic_settings import BaseSettings
 
@@ -128,28 +135,29 @@ class Settings(BaseSettings):
     aws_region: str = "us-east-1"
     dynamodb_table_name: str
     environment: str = "development"
-    
+
     class Config:
         env_file = ".env"
 ```
 
 **フロントエンド設定 (`frontend/.env.local.example`):**
+
 ```
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_ENVIRONMENT=development
 ```
 
-
-
 ### 依存関係管理
 
 **バックエンド依存関係 (pyproject.toml):**
+
 - `requirements.txt`を削除
 - すべての依存関係を`pyproject.toml`に統合
 - 柔軟性のためにバージョン範囲を使用
 - 開発依存関係セクションを追加
 
 **フロントエンド依存関係 (package.json):**
+
 - 包括的な`package.json`を作成
 - Next.js、React、TypeScriptを含める
 - 開発ツール（ESLint、Prettier）を追加
@@ -160,6 +168,7 @@ NEXT_PUBLIC_ENVIRONMENT=development
 ### 標準化されたエラーレスポンス
 
 **バックエンドエラーハンドリング:**
+
 ```python
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
@@ -174,6 +183,7 @@ class ErrorHandler:
 ```
 
 **フロントエンドエラーハンドリング:**
+
 ```typescript
 interface ApiError {
   error: string;
@@ -191,29 +201,32 @@ class ErrorHandler {
 ## テスト戦略
 
 ### バックエンドテスト
+
 - サービスとモデルの単体テスト
 - APIエンドポイントの統合テスト
 - テストフィクスチャを使用したデータベース統合テスト
 - 適切なフィクスチャでpytestを使用
 
 ### フロントエンドテスト
+
 - React Testing Libraryを使用したコンポーネントテスト
 - API相互作用の統合テスト
 - PlaywrightまたはCypressを使用したE2Eテスト
 - ビジュアル回帰テスト
 
-
-
 ## 開発ワークフロー
 
 ### セットアップスクリプト
+
 - `scripts/setup.sh`: 初期プロジェクトセットアップ
 - `scripts/start-dev.sh`: すべての開発サーバーを開始
 - `scripts/test.sh`: すべてのテストスイートを実行
 - `scripts/lint.sh`: コード品質チェック
 
 ### 開発コマンド
+
 **バックエンド:**
+
 ```bash
 cd backend
 uv run uvicorn app.main:app --reload
@@ -221,6 +234,7 @@ uv run pytest
 ```
 
 **フロントエンド:**
+
 ```bash
 cd frontend
 npm run dev
@@ -228,26 +242,28 @@ npm run test
 npm run build
 ```
 
-
-
 ## マイグレーション戦略
 
 ### フェーズ1: ディレクトリ再構築
+
 1. ディレクトリを標準名にリネーム
 2. ファイルを適切な場所に移動
 3. インポートパスと参照を更新
 
 ### フェーズ2: 設定の標準化
+
 1. 依存関係ファイルを統合
 2. 不足している設定ファイルを作成
 3. 環境管理を標準化
 
 ### フェーズ3: ドキュメントとスクリプト
+
 1. 包括的なドキュメントを作成
 2. セットアップと開発スクリプトを追加
 3. テストインフラストラクチャを実装
 
 ### フェーズ4: クリーンアップと最適化
+
 1. 未使用のファイルと依存関係を削除
 2. ビルドプロセスを最適化
 3. すべてのコンポーネントが連携することを検証

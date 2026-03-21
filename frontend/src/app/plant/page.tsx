@@ -2,27 +2,25 @@
  * 植物詳細ページ
  */
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { AppLayout } from '@/components/layout';
-import { PlantCard, SummaryMetrics } from '@/components/dashboard';
-import { PlantDetails } from '@/components/plant';
-import { ResponsiveTimeSeriesChart, ChartControls, ChartToolbar } from '@/components/charts';
-import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
-import { usePlantData, useSensorData, useAlerts } from '@/hooks';
-import { sensorService } from '@/lib/services';
-import { formatDate } from '@/lib/utils';
-import type { TimeRange, DataType, CustomTimeRange, SensorData } from '@/types';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useState, useEffect } from "react";
+import { AppLayout } from "@/components/layout";
+import { SummaryMetrics } from "@/components/dashboard";
+import { PlantDetails } from "@/components/plant";
+import { ResponsiveTimeSeriesChart, ChartControls, ChartToolbar } from "@/components/charts";
+import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from "@/components/ui";
+import { usePlantData, useSensorData, useAlerts } from "@/hooks";
+import { sensorService } from "@/lib/services";
+import { formatDate } from "@/lib/utils";
+import type { TimeRange, DataType, CustomTimeRange, SensorData } from "@/types";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export default function PlantDetailPage() {
-  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24h');
-  const [selectedDataType, setSelectedDataType] = useState<DataType>('temperature');
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("24h");
+  const [selectedDataType, setSelectedDataType] = useState<DataType>("temperature");
   const [customTimeRange, setCustomTimeRange] = useState<CustomTimeRange>();
   const [customData, setCustomData] = useState<SensorData[]>([]);
   const [customLoading, setCustomLoading] = useState(false);
-  const [customError, setCustomError] = useState<string | null>(null);
+  const [_customError, setCustomError] = useState<string | null>(null);
 
   // 植物詳細用の最新データ
   const [latestTemperatureData, setLatestTemperatureData] = useState<SensorData | null>(null);
@@ -40,19 +38,19 @@ export default function PlantDetailPage() {
     latest: latestData,
     summary: summaryData,
     loading: sensorLoading,
-    error: sensorError,
-    refreshData: refreshSensorData
+    error: _sensorError,
+    refreshData: refreshSensorData,
   } = useSensorData({
     dataType: selectedDataType,
     timeRange: selectedTimeRange,
     autoRefresh: autoRefresh,
-    realtime: autoRefresh
+    realtime: autoRefresh,
   });
 
   // アラート情報
   const { activeAlerts, unreadCount } = useAlerts({
     plantId: selectedPlant?.id,
-    thresholds: selectedPlant?.thresholds
+    thresholds: selectedPlant?.thresholds,
   });
 
   // カスタム期間データの取得
@@ -64,11 +62,11 @@ export default function PlantDetailPage() {
       const data = await sensorService.getDataByCustomRange(
         selectedDataType,
         range.startDate,
-        range.endDate
+        range.endDate,
       );
       setCustomData(data);
     } catch (error) {
-      setCustomError(error instanceof Error ? error.message : 'データの取得に失敗しました');
+      setCustomError(error instanceof Error ? error.message : "データの取得に失敗しました");
     } finally {
       setCustomLoading(false);
     }
@@ -78,26 +76,26 @@ export default function PlantDetailPage() {
   const fetchLatestData = async () => {
     try {
       const [tempData, phData] = await Promise.all([
-        sensorService.getLatestData('temperature'),
-        sensorService.getLatestData('pH')
+        sensorService.getLatestData("temperature"),
+        sensorService.getLatestData("pH"),
       ]);
       setLatestTemperatureData(tempData);
       setLatestPhData(phData);
     } catch (error) {
-      console.error('Failed to fetch latest data for plant details:', error);
+      console.error("Failed to fetch latest data for plant details:", error);
     }
   };
 
   // カスタム期間が変更された時の処理
   useEffect(() => {
-    if (selectedTimeRange === 'custom' && customTimeRange) {
-      fetchCustomData(customTimeRange);
+    if (selectedTimeRange === "custom" && customTimeRange) {
+      void fetchCustomData(customTimeRange);
     }
   }, [customTimeRange, selectedDataType]);
 
   // 植物詳細用データの初期取得
   useEffect(() => {
-    fetchLatestData();
+    void fetchLatestData();
   }, []);
 
   // 植物詳細用データの自動更新（useSensorDataとは独立）
@@ -105,7 +103,7 @@ export default function PlantDetailPage() {
     if (!autoRefresh) return;
 
     const interval = setInterval(() => {
-      fetchLatestData();
+      void fetchLatestData();
     }, 30000); // 30秒間隔
 
     return () => clearInterval(interval);
@@ -113,13 +111,13 @@ export default function PlantDetailPage() {
 
   // データ更新処理
   const handleRefresh = () => {
-    if (selectedTimeRange === 'custom' && customTimeRange) {
-      fetchCustomData(customTimeRange);
+    if (selectedTimeRange === "custom" && customTimeRange) {
+      void fetchCustomData(customTimeRange);
     } else {
-      refreshSensorData();
+      void refreshSensorData();
     }
     // 植物詳細用データも更新
-    fetchLatestData();
+    void fetchLatestData();
   };
 
   if (plantLoading || !selectedPlant) {
@@ -127,9 +125,7 @@ export default function PlantDetailPage() {
       <AppLayout title="植物詳細">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="text-gray-500 dark:text-gray-400">
-              植物データを読み込み中...
-            </div>
+            <div className="text-gray-500 dark:text-gray-400">植物データを読み込み中...</div>
           </div>
         </div>
       </AppLayout>
@@ -155,7 +151,7 @@ export default function PlantDetailPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleRefresh}
-                  loading={selectedTimeRange === 'custom' ? customLoading : sensorLoading}
+                  loading={selectedTimeRange === "custom" ? customLoading : sensorLoading}
                 >
                   更新
                 </Button>
@@ -190,12 +186,12 @@ export default function PlantDetailPage() {
                     >
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
-                          <Badge
-                            variant="danger"
-                            size="sm"
-                          >
-                            {alert.severity === 'high' ? '緊急' :
-                              alert.severity === 'medium' ? '警告' : '注意'}
+                          <Badge variant="danger" size="sm">
+                            {alert.severity === "high"
+                              ? "緊急"
+                              : alert.severity === "medium"
+                                ? "警告"
+                                : "注意"}
                           </Badge>
                           <span className="text-sm font-medium text-red-800 dark:text-red-200">
                             {alert.message}
@@ -228,7 +224,7 @@ export default function PlantDetailPage() {
                 selectedDataType={selectedDataType}
                 onDataTypeChange={setSelectedDataType}
                 showDataTypeSelector={true}
-                isLoading={selectedTimeRange === 'custom' ? customLoading : sensorLoading}
+                isLoading={selectedTimeRange === "custom" ? customLoading : sensorLoading}
                 onRefresh={handleRefresh}
                 autoRefresh={autoRefresh}
                 onAutoRefreshChange={setAutoRefresh}
@@ -238,12 +234,12 @@ export default function PlantDetailPage() {
 
           {/* 時系列チャート */}
           <ResponsiveTimeSeriesChart
-            data={selectedTimeRange === 'custom' ? customData : sensorData}
+            data={selectedTimeRange === "custom" ? customData : sensorData}
             dataType={selectedDataType}
             timeRange={selectedTimeRange}
             showThresholds={true}
             thresholds={selectedPlant.thresholds}
-            title={`${selectedPlant.name}の${selectedDataType === 'temperature' ? '温度' : 'pH'}データ`}
+            title={`${selectedPlant.name}の${selectedDataType === "temperature" ? "温度" : "pH"}データ`}
           />
 
           {/* サマリーメトリクス */}
@@ -254,8 +250,8 @@ export default function PlantDetailPage() {
                   current: latestData?.value || 0,
                   avg: summaryData.average,
                   min: summaryData.minimum,
-                  max: summaryData.maximum
-                }
+                  max: summaryData.maximum,
+                },
               }}
               thresholds={selectedPlant.thresholds}
             />
@@ -275,11 +271,15 @@ export default function PlantDetailPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">最小値:</span>
-                      <span className="font-medium">{selectedPlant.thresholds.temperature.min}°C</span>
+                      <span className="font-medium">
+                        {selectedPlant.thresholds.temperature.min}°C
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">最大値:</span>
-                      <span className="font-medium">{selectedPlant.thresholds.temperature.max}°C</span>
+                      <span className="font-medium">
+                        {selectedPlant.thresholds.temperature.max}°C
+                      </span>
                     </div>
                   </div>
                 </div>

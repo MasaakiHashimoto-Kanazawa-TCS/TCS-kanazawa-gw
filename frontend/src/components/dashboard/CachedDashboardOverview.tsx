@@ -2,13 +2,13 @@
  * キャッシュ機能付きダッシュボード概要コンポーネント
  */
 
-import React from 'react';
-import { useCachedTimeRangeData, useCachedSensorSummary } from '@/hooks';
-import { MetricsGrid } from './MetricsGrid';
-import { TimeSeriesChart } from '@/components/charts';
-import { Card } from '@/components/ui';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import React from "react";
+import { useCachedTimeRangeData, useCachedSensorSummary } from "@/hooks";
+import { MetricsGrid } from "./MetricsGrid";
+import { TimeSeriesChart } from "@/components/charts";
+import { Card } from "@/components/ui";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ErrorMessage } from "@/components/ui/ErrorMessage";
 
 interface CachedDashboardOverviewProps {
   className?: string;
@@ -16,34 +16,32 @@ interface CachedDashboardOverviewProps {
 
 export function CachedDashboardOverview({ className }: CachedDashboardOverviewProps) {
   // キャッシュ機能付きで24時間のデータを取得
-  const { 
-    data: temperatureData, 
-    loading: tempLoading, 
+  const {
+    data: temperatureData,
+    loading: tempLoading,
     error: tempError,
     isStale: tempStale,
-    lastUpdated: tempLastUpdated
-  } = useCachedTimeRangeData('temperature', '24h');
+    lastUpdated: tempLastUpdated,
+  } = useCachedTimeRangeData("temperature", "24h");
 
-  const { 
-    data: phData, 
-    loading: phLoading, 
+  const {
+    data: phData,
+    loading: phLoading,
     error: phError,
     isStale: phStale,
-    lastUpdated: phLastUpdated
-  } = useCachedTimeRangeData('pH', '24h');
+    lastUpdated: phLastUpdated,
+  } = useCachedTimeRangeData("pH", "24h");
 
   // キャッシュ機能付きでサマリーデータを取得
-  const { 
-    data: tempSummary, 
-    loading: tempSummaryLoading, 
-    error: tempSummaryError 
-  } = useCachedSensorSummary({ data_type: 'temperature', period: 'day' });
+  const { loading: tempSummaryLoading, error: tempSummaryError } = useCachedSensorSummary({
+    data_type: "temperature",
+    period: "day",
+  });
 
-  const { 
-    data: phSummary, 
-    loading: phSummaryLoading, 
-    error: phSummaryError 
-  } = useCachedSensorSummary({ data_type: 'pH', period: 'day' });
+  const { loading: phSummaryLoading, error: phSummaryError } = useCachedSensorSummary({
+    data_type: "pH",
+    period: "day",
+  });
 
   const isLoading = tempLoading || phLoading || tempSummaryLoading || phSummaryLoading;
   const hasError = tempError || phError || tempSummaryError || phSummaryError;
@@ -51,9 +49,7 @@ export function CachedDashboardOverview({ className }: CachedDashboardOverviewPr
   if (hasError) {
     return (
       <div className={className}>
-        <ErrorMessage 
-          message="データの取得に失敗しました。しばらく待ってから再試行してください。" 
-        />
+        <ErrorMessage error="データの取得に失敗しました。しばらく待ってから再試行してください。" />
       </div>
     );
   }
@@ -74,11 +70,11 @@ export function CachedDashboardOverview({ className }: CachedDashboardOverviewPr
       <div className="mb-4 text-sm text-gray-600">
         <div className="flex items-center gap-4">
           <span>
-            温度データ: {tempStale ? '古いデータを表示中' : '最新データ'} 
+            温度データ: {tempStale ? "古いデータを表示中" : "最新データ"}
             {tempLastUpdated && ` (${tempLastUpdated.toLocaleTimeString()})`}
           </span>
           <span>
-            pHデータ: {phStale ? '古いデータを表示中' : '最新データ'}
+            pHデータ: {phStale ? "古いデータを表示中" : "最新データ"}
             {phLastUpdated && ` (${phLastUpdated.toLocaleTimeString()})`}
           </span>
         </div>
@@ -87,10 +83,11 @@ export function CachedDashboardOverview({ className }: CachedDashboardOverviewPr
       {/* メトリクスグリッド */}
       <div className="mb-6">
         <MetricsGrid
-          temperatureSummary={tempSummary}
-          phSummary={phSummary}
-          temperatureLoading={tempSummaryLoading}
-          phLoading={phSummaryLoading}
+          metrics={{
+            temperature: temperatureData?.[temperatureData.length - 1]?.value,
+            pH: phData?.[phData.length - 1]?.value,
+          }}
+          thresholds={undefined}
         />
       </div>
 
@@ -100,22 +97,15 @@ export function CachedDashboardOverview({ className }: CachedDashboardOverviewPr
           <h3 className="text-lg font-semibold mb-4">温度推移</h3>
           <TimeSeriesChart
             data={temperatureData || []}
-            dataKey="value"
-            xAxisKey="timestamp"
-            color="#ef4444"
+            dataType="temperature"
+            timeRange="24h"
             height={300}
           />
         </Card>
 
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">pH推移</h3>
-          <TimeSeriesChart
-            data={phData || []}
-            dataKey="value"
-            xAxisKey="timestamp"
-            color="#3b82f6"
-            height={300}
-          />
+          <TimeSeriesChart data={phData || []} dataType="pH" timeRange="24h" height={300} />
         </Card>
       </div>
     </div>

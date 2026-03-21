@@ -2,11 +2,9 @@
  * シンプルなテスト用ダッシュボード
  */
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { DEFAULT_PLANT } from '@/types';
-import { sensorService } from '@/lib/services';
+import { useState, useEffect } from "react";
+import { DEFAULT_PLANT } from "@/types";
+import { sensorService } from "@/lib/services";
 
 export function SimpleDashboard() {
   const [loading, setLoading] = useState(true);
@@ -17,30 +15,30 @@ export function SimpleDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log('SimpleDashboard: Fetching data...');
+        console.log("SimpleDashboard: Fetching data...");
         setLoading(true);
         setError(null);
 
         // 温度データを取得
-        const tempData = await sensorService.getDataByTimeRange('temperature', '24h');
-        console.log('Temperature data:', tempData);
+        const tempData = await sensorService.getDataByTimeRange("temperature", "24h");
+        console.log("Temperature data:", tempData);
         setTemperatureData(tempData);
 
         // pHデータを取得
-        const phDataResult = await sensorService.getDataByTimeRange('pH', '24h');
-        console.log('pH data:', phDataResult);
+        const phDataResult = await sensorService.getDataByTimeRange("pH", "24h");
+        console.log("pH data:", phDataResult);
         setPhData(phDataResult);
 
         setLoading(false);
-        console.log('SimpleDashboard: Data loaded successfully');
+        console.log("SimpleDashboard: Data loaded successfully");
       } catch (err) {
-        console.error('SimpleDashboard: Error fetching data:', err);
-        setError(err instanceof Error ? err.message : 'データの取得に失敗しました');
+        console.error("SimpleDashboard: Error fetching data:", err);
+        setError(err instanceof Error ? err.message : "データの取得に失敗しました");
         setLoading(false);
       }
     };
 
-    fetchData();
+    void fetchData();
   }, []);
 
   if (loading) {
@@ -59,14 +57,24 @@ export function SimpleDashboard() {
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="text-red-500 mb-4">
-            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-12 h-12 mx-auto"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">エラーが発生しました</h3>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
             再読み込み
@@ -80,7 +88,7 @@ export function SimpleDashboard() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">植物監視ダッシュボード</h1>
-        <p className="text-gray-600">最終更新: {new Date().toLocaleTimeString('ja-JP')}</p>
+        <p className="text-gray-600">最終更新: {new Date().toLocaleTimeString("ja-JP")}</p>
       </div>
 
       {/* 植物情報 */}
@@ -119,7 +127,10 @@ export function SimpleDashboard() {
                   最新値: {temperatureData[temperatureData.length - 1]?.value}°C
                 </p>
                 <p className="text-sm text-gray-600">
-                  最新時刻: {new Date(temperatureData[temperatureData.length - 1]?.timestamp).toLocaleString('ja-JP')}
+                  最新時刻:{" "}
+                  {new Date(temperatureData[temperatureData.length - 1]?.timestamp).toLocaleString(
+                    "ja-JP",
+                  )}
                 </p>
               </>
             )}
@@ -133,11 +144,9 @@ export function SimpleDashboard() {
             <p className="text-sm text-gray-600">データ数: {phData.length}件</p>
             {phData.length > 0 && (
               <>
+                <p className="text-sm text-gray-600">最新値: {phData[phData.length - 1]?.value}</p>
                 <p className="text-sm text-gray-600">
-                  最新値: {phData[phData.length - 1]?.value}
-                </p>
-                <p className="text-sm text-gray-600">
-                  最新時刻: {new Date(phData[phData.length - 1]?.timestamp).toLocaleString('ja-JP')}
+                  最新時刻: {new Date(phData[phData.length - 1]?.timestamp).toLocaleString("ja-JP")}
                 </p>
               </>
             )}
@@ -154,12 +163,20 @@ export function SimpleDashboard() {
             <span className="text-gray-600">植物監視: 正常</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${temperatureData.length > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-            <span className="text-gray-600">温度センサー: {temperatureData.length > 0 ? '正常' : 'エラー'}</span>
+            <div
+              className={`w-2 h-2 rounded-full ${temperatureData.length > 0 ? "bg-green-500" : "bg-red-500"}`}
+            ></div>
+            <span className="text-gray-600">
+              温度センサー: {temperatureData.length > 0 ? "正常" : "エラー"}
+            </span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${phData.length > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-            <span className="text-gray-600">pHセンサー: {phData.length > 0 ? '正常' : 'エラー'}</span>
+            <div
+              className={`w-2 h-2 rounded-full ${phData.length > 0 ? "bg-green-500" : "bg-red-500"}`}
+            ></div>
+            <span className="text-gray-600">
+              pHセンサー: {phData.length > 0 ? "正常" : "エラー"}
+            </span>
           </div>
         </div>
       </div>

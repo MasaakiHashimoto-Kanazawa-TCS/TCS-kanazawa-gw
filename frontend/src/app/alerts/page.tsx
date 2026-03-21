@@ -2,37 +2,28 @@
  * アラート管理ページ
  */
 
-'use client';
-
-import { useState, useMemo } from 'react';
-import { AppLayout } from '@/components/layout';
-import { AlertList, AlertSummary } from '@/components/alerts';
-import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
-import { ChartToolbar } from '@/components/charts';
-import { useAlerts, useAlertStats } from '@/hooks';
-import { DEFAULT_PLANT } from '@/types';
-import type { Alert, AlertType, AlertSeverity } from '@/types';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useState, useMemo } from "react";
+import { AppLayout } from "@/components/layout";
+import { AlertList, AlertSummary } from "@/components/alerts";
+import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from "@/components/ui";
+import { ChartToolbar } from "@/components/charts";
+import { useAlerts, useAlertStats } from "@/hooks";
+import { DEFAULT_PLANT } from "@/types";
+import type { AlertType, AlertSeverity } from "@/types";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export default function AlertsPage() {
   const [showResolved, setShowResolved] = useState(false);
-  const [filterSeverity, setFilterSeverity] = useState<AlertSeverity | 'all'>('all');
-  const [filterType, setFilterType] = useState<AlertType | 'all'>('all');
+  const [filterSeverity, setFilterSeverity] = useState<AlertSeverity | "all">("all");
+  const [filterType, setFilterType] = useState<AlertType | "all">("all");
 
   // アラートデータの取得
-  const {
-    alerts,
-    activeAlerts,
-    acknowledgedAlerts,
-    unreadCount,
-    acknowledgeAlert,
-    dismissAlert,
-    clearAllAlerts
-  } = useAlerts({
-    plantId: DEFAULT_PLANT.id,
-    thresholds: DEFAULT_PLANT.thresholds,
-    autoGenerate: true
-  });
+  const { alerts, activeAlerts, unreadCount, acknowledgeAlert, dismissAlert, clearAllAlerts } =
+    useAlerts({
+      plantId: DEFAULT_PLANT.id,
+      thresholds: DEFAULT_PLANT.thresholds,
+      autoGenerate: true,
+    });
 
   // アラート統計
   const alertStats = useAlertStats(alerts);
@@ -42,13 +33,13 @@ export default function AlertsPage() {
     let filtered = showResolved ? alerts : activeAlerts;
 
     // 重要度でフィルタ
-    if (filterSeverity !== 'all') {
-      filtered = filtered.filter(alert => alert.severity === filterSeverity);
+    if (filterSeverity !== "all") {
+      filtered = filtered.filter((alert) => alert.severity === filterSeverity);
     }
 
     // タイプでフィルタ
-    if (filterType !== 'all') {
-      filtered = filtered.filter(alert => alert.type === filterType);
+    if (filterType !== "all") {
+      filtered = filtered.filter((alert) => alert.type === filterType);
     }
 
     return filtered;
@@ -56,12 +47,12 @@ export default function AlertsPage() {
 
   // 一括操作
   const handleAcknowledgeAll = () => {
-    const unacknowledgedAlerts = filteredAlerts.filter(alert => !alert.acknowledged);
-    unacknowledgedAlerts.forEach(alert => acknowledgeAlert(alert.id));
+    const unacknowledgedAlerts = filteredAlerts.filter((alert) => !alert.acknowledged);
+    unacknowledgedAlerts.forEach((alert) => acknowledgeAlert(alert.id));
   };
 
   const handleClearAll = () => {
-    if (confirm('すべてのアラートを解除しますか？')) {
+    if (confirm("すべてのアラートを解除しますか？")) {
       clearAllAlerts();
     }
   };
@@ -85,7 +76,7 @@ export default function AlertsPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleAcknowledgeAll}
-                  disabled={filteredAlerts.filter(a => !a.acknowledged).length === 0}
+                  disabled={filteredAlerts.filter((a) => !a.acknowledged).length === 0}
                 >
                   すべて確認
                 </Button>
@@ -104,7 +95,7 @@ export default function AlertsPage() {
           {/* アラートサマリー */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <AlertSummary alerts={alerts} />
-            
+
             {/* 統計情報 */}
             <Card>
               <CardHeader>
@@ -139,10 +130,16 @@ export default function AlertsPage() {
                 {Object.entries(alertStats.byType).map(([type, count]) => (
                   <div key={type} className="flex justify-between text-sm">
                     <span>
-                      {type === 'temperature_high' ? '温度高' :
-                       type === 'temperature_low' ? '温度低' :
-                       type === 'ph_high' ? 'pH高' :
-                       type === 'ph_low' ? 'pH低' : type}:
+                      {type === "temperature_high"
+                        ? "温度高"
+                        : type === "temperature_low"
+                          ? "温度低"
+                          : type === "ph_high"
+                            ? "pH高"
+                            : type === "ph_low"
+                              ? "pH低"
+                              : type}
+                      :
                     </span>
                     <span className="font-medium">{count}</span>
                   </div>
@@ -159,14 +156,14 @@ export default function AlertsPage() {
                   {/* 表示切り替え */}
                   <div className="flex items-center space-x-2">
                     <Button
-                      variant={!showResolved ? 'primary' : 'outline'}
+                      variant={!showResolved ? "primary" : "outline"}
                       size="sm"
                       onClick={() => setShowResolved(false)}
                     >
                       アクティブ ({activeAlerts.length})
                     </Button>
                     <Button
-                      variant={showResolved ? 'primary' : 'outline'}
+                      variant={showResolved ? "primary" : "outline"}
                       size="sm"
                       onClick={() => setShowResolved(true)}
                     >
@@ -179,7 +176,7 @@ export default function AlertsPage() {
                     <span className="text-sm text-gray-600 dark:text-gray-400">重要度:</span>
                     <select
                       value={filterSeverity}
-                      onChange={(e) => setFilterSeverity(e.target.value as AlertSeverity | 'all')}
+                      onChange={(e) => setFilterSeverity(e.target.value as AlertSeverity | "all")}
                       className="text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800"
                     >
                       <option value="all">すべて</option>
@@ -194,7 +191,7 @@ export default function AlertsPage() {
                     <span className="text-sm text-gray-600 dark:text-gray-400">タイプ:</span>
                     <select
                       value={filterType}
-                      onChange={(e) => setFilterType(e.target.value as AlertType | 'all')}
+                      onChange={(e) => setFilterType(e.target.value as AlertType | "all")}
                       className="text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800"
                     >
                       <option value="all">すべて</option>

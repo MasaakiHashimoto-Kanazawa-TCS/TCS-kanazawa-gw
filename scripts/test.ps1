@@ -128,37 +128,30 @@ function Test-Frontend {
         # 単体テスト
         Write-Info "単体テストを実行..."
         if ($Watch) {
-            npm run test:watch
+            vp test --watch
         }
         elseif ($Coverage) {
-            npm run test:coverage
+            vp test --coverage
         }
         else {
-            npm run test -- --watchAll=false
+            vp test
         }
-        
+
         if ($LASTEXITCODE -ne 0) {
             throw "テストが失敗しました"
         }
-        
+
         if (-not $Watch) {
-            # 型チェック
-            Write-Info "TypeScript型チェックを実行..."
-            npm run type-check
+            # フォーマット・リント・型チェック
+            Write-Info "コード品質チェックを実行..."
+            vp check
             if ($LASTEXITCODE -ne 0) {
-                throw "型チェックが失敗しました"
+                throw "コード品質チェックが失敗しました"
             }
-            
-            # リンティング
-            Write-Info "ESLintチェックを実行..."
-            npm run lint
-            if ($LASTEXITCODE -ne 0) {
-                Write-Warning "ESLintエラーがあります。修正するには: npm run lint:fix"
-            }
-            
+
             # ビルドテスト
             Write-Info "ビルドテストを実行..."
-            npm run build
+            vp build
             if ($LASTEXITCODE -ne 0) {
                 throw "ビルドが失敗しました"
             }

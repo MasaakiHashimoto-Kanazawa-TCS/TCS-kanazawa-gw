@@ -65,7 +65,7 @@ function Stop-Servers {
     
     # プロセスを強制終了
     Get-Process -Name "uvicorn" -ErrorAction SilentlyContinue | Stop-Process -Force
-    Get-Process -Name "node" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*next*" } | Stop-Process -Force
+    Get-Process -Name "node" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*vite*" } | Stop-Process -Force
     
     Write-Info "サーバーを停止しました"
 }
@@ -138,7 +138,7 @@ function Start-Frontend {
     
     $script:FrontendJob = Start-Job -ScriptBlock {
         Set-Location $using:PWD\frontend
-        npm run dev
+        vp dev
     }
     
     # 起動待機とヘルスチェック（リトライ付き）
@@ -151,9 +151,9 @@ function Start-Frontend {
         $retryCount++
         
         try {
-            $response = Invoke-WebRequest -Uri "http://localhost:3000" -TimeoutSec 3 -ErrorAction Stop
+            $response = Invoke-WebRequest -Uri "http://localhost:5173" -TimeoutSec 3 -ErrorAction Stop
             $healthCheckPassed = $true
-            Write-Success "フロントエンドサーバーが起動しました (http://localhost:3000)"
+            Write-Success "フロントエンドサーバーが起動しました (http://localhost:5173)"
         }
         catch {
             Write-Host "." -NoNewline
@@ -176,7 +176,7 @@ function Monitor-Servers {
     Write-Host "アクセス URL:" -ForegroundColor Cyan
     
     if (-not $BackendOnly) {
-        Write-Host "  フロントエンド: http://localhost:3000"
+        Write-Host "  フロントエンド: http://localhost:5173"
     }
     if (-not $FrontendOnly) {
         Write-Host "  バックエンドAPI: http://localhost:8000"

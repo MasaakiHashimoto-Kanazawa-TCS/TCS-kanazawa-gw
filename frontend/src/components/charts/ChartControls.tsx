@@ -2,14 +2,12 @@
  * チャート制御コンポーネント
  */
 
-'use client';
-
-import { useState } from 'react';
-import { Button, Badge } from '@/components/ui';
-import { CustomDateRangePicker, formatCustomTimeRange } from './CustomDateRangePicker';
-import { TIME_RANGE_OPTIONS, DATA_TYPE_OPTIONS } from '@/lib/constants';
-import type { TimeRange, DataType, CustomTimeRange } from '@/types';
-import { cn } from '@/lib/utils';
+import { useState } from "react";
+import { Button, Badge } from "@/components/ui";
+import { CustomDateRangePicker, formatCustomTimeRange } from "./CustomDateRangePicker";
+import { TIME_RANGE_OPTIONS, DATA_TYPE_OPTIONS } from "@/lib/constants";
+import type { TimeRange, DataType, CustomTimeRange } from "@/types";
+import { cn } from "@/lib/utils";
 
 export interface ChartControlsProps {
   selectedTimeRange: TimeRange;
@@ -38,12 +36,12 @@ export function ChartControls({
   onRefresh,
   autoRefresh = false,
   onAutoRefreshChange,
-  className
+  className,
 }: ChartControlsProps) {
   const [showCustomPicker, setShowCustomPicker] = useState(false);
 
   const handleTimeRangeClick = (timeRange: TimeRange) => {
-    if (timeRange === 'custom') {
+    if (timeRange === "custom") {
       setShowCustomPicker(true);
     } else {
       onTimeRangeChange(timeRange);
@@ -54,7 +52,7 @@ export function ChartControls({
     if (onCustomTimeRangeChange) {
       onCustomTimeRangeChange(range);
     }
-    onTimeRangeChange('custom');
+    onTimeRangeChange("custom");
     setShowCustomPicker(false);
   };
 
@@ -63,22 +61,25 @@ export function ChartControls({
   };
 
   return (
-    <div className={cn('flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0', className)}>
+    <div
+      className={cn(
+        "flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0",
+        className,
+      )}
+    >
       {/* 時間範囲選択 */}
       <div className="flex items-center space-x-2">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          期間:
-        </span>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">期間:</span>
         <div className="flex flex-wrap gap-1">
           {TIME_RANGE_OPTIONS.map((option) => (
             <Button
               key={option.value}
-              variant={selectedTimeRange === option.value ? 'primary' : 'outline'}
+              variant={selectedTimeRange === option.value ? "primary" : "outline"}
               size="sm"
               onClick={() => handleTimeRangeClick(option.value)}
               disabled={isLoading}
             >
-              {option.value === 'custom' && selectedTimeRange === 'custom' && customTimeRange
+              {option.value === "custom" && selectedTimeRange === "custom" && customTimeRange
                 ? formatCustomTimeRange(customTimeRange)
                 : option.label}
             </Button>
@@ -89,19 +90,17 @@ export function ChartControls({
       {/* データタイプ選択 */}
       {showDataTypeSelector && selectedDataType && onDataTypeChange && (
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            データ:
-          </span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">データ:</span>
           <div className="flex space-x-1">
             {DATA_TYPE_OPTIONS.map((option) => (
               <Button
                 key={option.value}
-                variant={selectedDataType === option.value ? 'primary' : 'outline'}
+                variant={selectedDataType === option.value ? "primary" : "outline"}
                 size="sm"
                 onClick={() => onDataTypeChange(option.value)}
                 disabled={isLoading}
                 style={{
-                  borderColor: selectedDataType === option.value ? option.color : undefined
+                  borderColor: selectedDataType === option.value ? option.color : undefined,
                 }}
               >
                 <div
@@ -126,9 +125,7 @@ export function ChartControls({
               onChange={(e) => onAutoRefreshChange(e.target.checked)}
               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              自動更新
-            </span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">自動更新</span>
             {autoRefresh && (
               <div className="flex items-center space-x-1">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -148,7 +145,12 @@ export function ChartControls({
             className="flex items-center space-x-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
             <span>更新</span>
           </Button>
@@ -166,7 +168,7 @@ export function ChartControls({
   );
 }
 /*
-*
+ *
  * チャート統計情報コンポーネント
  */
 export interface ChartStatsProps {
@@ -183,9 +185,9 @@ export interface ChartStatsProps {
 export function ChartStats({ stats, dataType, className }: ChartStatsProps) {
   const formatValue = (value: number) => {
     switch (dataType) {
-      case 'temperature':
+      case "temperature":
         return `${value.toFixed(1)}°C`;
-      case 'pH':
+      case "pH":
         return `pH ${value.toFixed(2)}`;
       default:
         return value.toFixed(1);
@@ -193,41 +195,31 @@ export function ChartStats({ stats, dataType, className }: ChartStatsProps) {
   };
 
   return (
-    <div className={cn('grid grid-cols-2 md:grid-cols-4 gap-4', className)}>
+    <div className={cn("grid grid-cols-2 md:grid-cols-4 gap-4", className)}>
       <div className="text-center">
-        <div className="text-2xl font-bold text-gray-900 dark:text-white">
-          {stats.count}
-        </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          データ数
-        </div>
+        <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.count}</div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">データ数</div>
       </div>
-      
+
       <div className="text-center">
         <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
           {formatValue(stats.average)}
         </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          平均値
-        </div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">平均値</div>
       </div>
-      
+
       <div className="text-center">
         <div className="text-2xl font-bold text-green-600 dark:text-green-400">
           {formatValue(stats.minimum)}
         </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          最小値
-        </div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">最小値</div>
       </div>
-      
+
       <div className="text-center">
         <div className="text-2xl font-bold text-red-600 dark:text-red-400">
           {formatValue(stats.maximum)}
         </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          最大値
-        </div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">最大値</div>
       </div>
     </div>
   );
@@ -249,24 +241,19 @@ export interface ChartLegendProps {
 
 export function ChartLegend({ items, onToggle, className }: ChartLegendProps) {
   return (
-    <div className={cn('flex flex-wrap items-center gap-4', className)}>
+    <div className={cn("flex flex-wrap items-center gap-4", className)}>
       {items.map((item, index) => (
         <div
           key={index}
           className={cn(
-            'flex items-center space-x-2 cursor-pointer transition-opacity',
-            item.active === false && 'opacity-50',
-            onToggle && 'hover:opacity-75'
+            "flex items-center space-x-2 cursor-pointer transition-opacity",
+            item.active === false && "opacity-50",
+            onToggle && "hover:opacity-75",
           )}
           onClick={() => onToggle?.(index)}
         >
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: item.color }}
-          />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {item.label}
-          </span>
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</span>
           {item.value && (
             <Badge variant="default" size="sm">
               {item.value}
@@ -290,22 +277,12 @@ export interface ChartToolbarProps {
 
 export function ChartToolbar({ title, subtitle, actions, className }: ChartToolbarProps) {
   return (
-    <div className={cn('flex items-center justify-between mb-4', className)}>
+    <div className={cn("flex items-center justify-between mb-4", className)}>
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {title}
-        </h2>
-        {subtitle && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {subtitle}
-          </p>
-        )}
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
+        {subtitle && <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>}
       </div>
-      {actions && (
-        <div className="flex items-center space-x-2">
-          {actions}
-        </div>
-      )}
+      {actions && <div className="flex items-center space-x-2">{actions}</div>}
     </div>
   );
 }

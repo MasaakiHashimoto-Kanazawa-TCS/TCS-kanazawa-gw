@@ -26,12 +26,14 @@
 ### インストール
 
 1. 依存関係のインストール:
+
 ```bash
 cd backend
 uv sync
 ```
 
 2. 環境変数の設定:
+
 ```bash
 cp .env.example .env
 # .envファイルを編集してAWS認証情報を設定
@@ -78,10 +80,12 @@ uv run uvicorn app.main:app --reload
 植物監視データの可視化ページを表示
 
 **パラメータ:**
+
 - `data_type` (string, optional): データの種類 (デフォルト: "temperature")
 - `days` (int, optional): 表示する日数 (デフォルト: 7)
 
 **例:**
+
 ```
 GET /?data_type=humidity&days=14
 ```

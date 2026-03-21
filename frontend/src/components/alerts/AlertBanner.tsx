@@ -2,14 +2,12 @@
  * アラートバナーコンポーネント
  */
 
-'use client';
-
-import { useState } from 'react';
-import type { Alert } from '@/types';
-import { Button, Badge } from '@/components/ui';
-import { ALERT_CONFIGS } from '@/types';
-import { formatDate } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import { useState } from "react";
+import type { Alert } from "@/types";
+import { Button, Badge } from "@/components/ui";
+import { ALERT_CONFIGS } from "@/types";
+import { formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export interface AlertBannerProps {
   alerts: Alert[];
@@ -28,12 +26,12 @@ export function AlertBanner({
   maxVisible = 3,
   className,
   showActions = true,
-  compact = false
+  compact = false,
 }: AlertBannerProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   // アクティブなアラートのみ表示
-  const activeAlerts = alerts.filter(alert => !alert.resolved);
+  const activeAlerts = alerts.filter((alert) => !alert.resolved);
   const visibleAlerts = collapsed ? [] : activeAlerts.slice(0, maxVisible);
   const hiddenCount = Math.max(0, activeAlerts.length - maxVisible);
 
@@ -41,34 +39,34 @@ export function AlertBanner({
     return null;
   }
 
-  const getSeverityColor = (severity: Alert['severity']) => {
+  const getSeverityColor = (severity: Alert["severity"]) => {
     switch (severity) {
-      case 'high':
-        return 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800';
-      case 'medium':
-        return 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800';
-      case 'low':
-        return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800';
+      case "high":
+        return "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800";
+      case "medium":
+        return "bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800";
+      case "low":
+        return "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800";
       default:
-        return 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700';
+        return "bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700";
     }
   };
 
-  const getSeverityTextColor = (severity: Alert['severity']) => {
+  const getSeverityTextColor = (severity: Alert["severity"]) => {
     switch (severity) {
-      case 'high':
-        return 'text-red-800 dark:text-red-200';
-      case 'medium':
-        return 'text-orange-800 dark:text-orange-200';
-      case 'low':
-        return 'text-yellow-800 dark:text-yellow-200';
+      case "high":
+        return "text-red-800 dark:text-red-200";
+      case "medium":
+        return "text-orange-800 dark:text-orange-200";
+      case "low":
+        return "text-yellow-800 dark:text-yellow-200";
       default:
-        return 'text-gray-800 dark:text-gray-200';
+        return "text-gray-800 dark:text-gray-200";
     }
   };
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn("space-y-2", className)}>
       {/* 折りたたみヘッダー */}
       {activeAlerts.length > 0 && (
         <div className="flex items-center justify-between">
@@ -80,12 +78,8 @@ export function AlertBanner({
               {activeAlerts.length}件
             </Badge>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? '表示' : '非表示'}
+          <Button variant="ghost" size="sm" onClick={() => setCollapsed(!collapsed)}>
+            {collapsed ? "表示" : "非表示"}
           </Button>
         </div>
       )}
@@ -99,10 +93,7 @@ export function AlertBanner({
         return (
           <div
             key={alert.id}
-            className={cn(
-              'border rounded-lg p-4 transition-all duration-200',
-              severityColor
-            )}
+            className={cn("border rounded-lg p-4 transition-all duration-200", severityColor)}
           >
             <div className="flex items-start space-x-3">
               {/* アイコン */}
@@ -117,32 +108,32 @@ export function AlertBanner({
                     {/* タイトルと重要度 */}
                     <div className="flex items-center space-x-2 mb-1">
                       <Badge
-                        variant={alert.severity === 'high' ? 'danger' : 
-                                alert.severity === 'medium' ? 'warning' : 'default'}
+                        variant={
+                          alert.severity === "high"
+                            ? "danger"
+                            : alert.severity === "medium"
+                              ? "warning"
+                              : "default"
+                        }
                         size="sm"
                       >
-                        {alert.severity === 'high' ? '緊急' : 
-                         alert.severity === 'medium' ? '警告' : '注意'}
+                        {alert.severity === "high"
+                          ? "緊急"
+                          : alert.severity === "medium"
+                            ? "警告"
+                            : "注意"}
                       </Badge>
-                      <h4 className={cn('text-sm font-medium', textColor)}>
-                        {config.title}
-                      </h4>
+                      <h4 className={cn("text-sm font-medium", textColor)}>{config.title}</h4>
                     </div>
 
                     {/* メッセージ */}
-                    <p className={cn('text-sm', textColor)}>
-                      {alert.message}
-                    </p>
+                    <p className={cn("text-sm", textColor)}>{alert.message}</p>
 
                     {/* 推奨アクション */}
                     {alert.recommendedAction && !compact && (
                       <div className="mt-2">
-                        <p className={cn('text-sm font-medium', textColor)}>
-                          推奨アクション:
-                        </p>
-                        <p className={cn('text-sm', textColor)}>
-                          {alert.recommendedAction}
-                        </p>
+                        <p className={cn("text-sm font-medium", textColor)}>推奨アクション:</p>
+                        <p className={cn("text-sm", textColor)}>{alert.recommendedAction}</p>
                       </div>
                     )}
 
@@ -169,11 +160,7 @@ export function AlertBanner({
                             確認
                           </Button>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDismiss(alert.id)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => onDismiss(alert.id)}>
                           解除
                         </Button>
                       </div>
@@ -189,11 +176,7 @@ export function AlertBanner({
       {/* 隠れているアラートの表示 */}
       {hiddenCount > 0 && !collapsed && (
         <div className="text-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCollapsed(false)}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setCollapsed(false)}>
             他に{hiddenCount}件のアラートがあります
           </Button>
         </div>
@@ -209,8 +192,8 @@ export function CompactAlertBanner({
   alerts,
   onDismiss,
   onAcknowledge,
-  className
-}: Omit<AlertBannerProps, 'compact' | 'maxVisible'>) {
+  className,
+}: Omit<AlertBannerProps, "compact" | "maxVisible">) {
   return (
     <AlertBanner
       alerts={alerts}

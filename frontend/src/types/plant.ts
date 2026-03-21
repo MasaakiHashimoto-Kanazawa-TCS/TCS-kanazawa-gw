@@ -37,21 +37,21 @@ export interface UpdatePlantRequest {
 
 // デモ用のデフォルト植物データ（実際のシステム構成に合わせて調整）
 export const DEFAULT_PLANT: Plant = {
-  id: 'plant-001',
-  name: 'バジル',
-  species: 'Ocimum basilicum',
-  location: '温室A',
-  device_id: 'sensor_001', // 実際のシステムでは設定ファイルから取得
+  id: "plant-001",
+  name: "バジル",
+  species: "Ocimum basilicum",
+  location: "温室A",
+  device_id: "sensor_001", // 実際のシステムでは設定ファイルから取得
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   thresholds: {
     temperature: { min: 18, max: 28 },
-    pH: { min: 6.0, max: 7.5 }
-  }
+    pH: { min: 6.0, max: 7.5 },
+  },
 };
 
 // デフォルト閾値設定
 export const DEFAULT_THRESHOLDS: ThresholdConfig = {
   temperature: { min: 18, max: 28 },
-  pH: { min: 6.0, max: 7.5 }
+  pH: { min: 6.0, max: 7.5 },
 };

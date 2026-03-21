@@ -2,9 +2,9 @@
  * タブ間データキャッシュフック
  */
 
-import { useEffect, useCallback, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { cacheManager } from '@/lib/utils/cacheManager';
+import { useEffect, useCallback, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { cacheManager } from "@/lib/utils/cacheManager";
 
 export interface TabCacheConfig {
   maxCacheSize: number;
@@ -25,125 +25,135 @@ const DEFAULT_CONFIG: TabCacheConfig = {
   maxCacheSize: 10 * 1024 * 1024, // 10MB
   cacheExpiry: 5 * 60 * 1000, // 5分
   preloadOnTabSwitch: true,
-  backgroundRefresh: true
+  backgroundRefresh: true,
 };
 
 export function useTabCache(options: TabCacheOptions = {}) {
-  const {
-    enabled = true,
-    config = {},
-    onCacheHit,
-    onCacheMiss,
-    onCacheUpdate
-  } = options;
+  const { enabled = true, config = {}, onCacheHit, onCacheMiss, onCacheUpdate } = options;
 
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const cacheConfig = { ...DEFAULT_CONFIG, ...config };
   const [cacheStats, setCacheStats] = useState({
     hits: 0,
     misses: 0,
     updates: 0,
-    size: 0
+    size: 0,
   });
-  const lastPathname = useRef<string>('');
+  const lastPathname = useRef<string>("");
   const cacheTimestamps = useRef<Map<string, number>>(new Map());
 
   // キャッシュキーを生成
   const generateCacheKey = useCallback((path: string, dataType?: string) => {
-    return `tab_cache_${path}${dataType ? `_${dataType}` : ''}`;
+    return `tab_cache_${path}${dataType ? `_${dataType}` : ""}`;
   }, []);
 
   // データをキャッシュに保存
-  const setCache = useCallback(<T>(path: string, data: T, dataType?: string) => {
-    if (!enabled) return;
+  const setCache = useCallback(
+    <T>(path: string, data: T, dataType?: string) => {
+      if (!enabled) return;
 
-    const key = generateCacheKey(path, dataType);
-    const timestamp = Date.now();
-    
-    try {
-      cacheManager.set(key, {
-        data,
-        timestamp,
-        path,
-        dataType
-      }, cacheConfig.cacheExpiry);
+      const key = generateCacheKey(path, dataType);
+      const timestamp = Date.now();
 
-      cacheTimestamps.current.set(key, timestamp);
-      setCacheStats(prev => ({
-        ...prev,
-        updates: prev.updates + 1,
-        size: cacheManager.getStats().totalSize
-      }));
+      try {
+        cacheManager.set(
+          key,
+          {
+            data,
+            timestamp,
+            path,
+            dataType,
+          },
+          cacheConfig.cacheExpiry,
+        );
 
-      onCacheUpdate?.(key);
-    } catch (error) {
-      console.error('Failed to set cache:', error);
-    }
-  }, [enabled, generateCacheKey, cacheConfig.cacheExpiry, onCacheUpdate]);
+        cacheTimestamps.current.set(key, timestamp);
+        setCacheStats((prev) => ({
+          ...prev,
+          updates: prev.updates + 1,
+          size: cacheManager.getStats().totalSize,
+        }));
+
+        onCacheUpdate?.(key);
+      } catch (error) {
+        console.error("Failed to set cache:", error);
+      }
+    },
+    [enabled, generateCacheKey, cacheConfig.cacheExpiry, onCacheUpdate],
+  );
 
   // キャッシュからデータを取得
-  const getCache = useCallback(<T>(path: string, dataType?: string): T | null => {
-    if (!enabled) return null;
+  const getCache = useCallback(
+    <T>(path: string, dataType?: string): T | null => {
+      if (!enabled) return null;
 
-    const key = generateCacheKey(path, dataType);
-    
-    try {
-      const cached = cacheManager.get<{
-        data: T;
-        timestamp: number;
-        path: string;
-        dataType?: string;
-      }>(key);
+      const key = generateCacheKey(path, dataType);
 
-      if (cached) {
-        const age = Date.now() - cached.timestamp;
-        if (age < cacheConfig.cacheExpiry) {
-          setCacheStats(prev => ({
-            ...prev,
-            hits: prev.hits + 1
-          }));
-          onCacheHit?.(key);
-          return cached.data;
-        } else {
-          // 期限切れのキャッシュを削除
+      try {
+        const cached = cacheManager.get<{
+          data: T;
+          timestamp: number;
+          path: string;
+          dataType?: string;
+        }>(key);
+
+        if (cached) {
+          const age = Date.now() - cached.timestamp;
+          if (age < cacheConfig.cacheExpiry) {
+            setCacheStats((prev) => ({
+              ...prev,
+              hits: prev.hits + 1,
+            }));
+            onCacheHit?.(key);
+            return cached.data;
+          } else {
+            // 期限切れのキャッシュを削除
+            cacheManager.remove(key);
+            cacheTimestamps.current.delete(key);
+          }
+        }
+
+        setCacheStats((prev) => ({
+          ...prev,
+          misses: prev.misses + 1,
+        }));
+        onCacheMiss?.(key);
+        return null;
+      } catch (error) {
+        console.error("Failed to get cache:", error);
+        return null;
+      }
+    },
+    [enabled, generateCacheKey, cacheConfig.cacheExpiry, onCacheHit, onCacheMiss],
+  );
+
+  // キャッシュを削除
+  const removeCache = useCallback(
+    (path: string, dataType?: string) => {
+      if (!enabled) return;
+
+      const key = generateCacheKey(path, dataType);
+      cacheManager.remove(key);
+      cacheTimestamps.current.delete(key);
+    },
+    [enabled, generateCacheKey],
+  );
+
+  // パスに関連するキャッシュを削除
+  const clearPathCache = useCallback(
+    (path: string) => {
+      if (!enabled) return;
+
+      const keys = cacheTimestamps.current.keys();
+      for (const key of keys) {
+        if (key.includes(path)) {
           cacheManager.remove(key);
           cacheTimestamps.current.delete(key);
         }
       }
-
-      setCacheStats(prev => ({
-        ...prev,
-        misses: prev.misses + 1
-      }));
-      onCacheMiss?.(key);
-      return null;
-    } catch (error) {
-      console.error('Failed to get cache:', error);
-      return null;
-    }
-  }, [enabled, generateCacheKey, cacheConfig.cacheExpiry, onCacheHit, onCacheMiss]);
-
-  // キャッシュを削除
-  const removeCache = useCallback((path: string, dataType?: string) => {
-    if (!enabled) return;
-
-    const key = generateCacheKey(path, dataType);
-    cacheManager.remove(key);
-    cacheTimestamps.current.delete(key);
-  }, [enabled, generateCacheKey]);
-
-  // パスに関連するキャッシュを削除
-  const clearPathCache = useCallback((path: string) => {
-    if (!enabled) return;
-
-    const keys = cacheTimestamps.current.keys();
-    for (const key of keys) {
-      if (key.includes(path)) {
-        cacheManager.remove(key);
-        cacheTimestamps.current.delete(key);
-      }
-    }
-  }, [enabled]);
+    },
+    [enabled],
+  );
 
   // 全キャッシュをクリア
   const clearAllCache = useCallback(() => {
@@ -155,7 +165,7 @@ export function useTabCache(options: TabCacheOptions = {}) {
       hits: 0,
       misses: 0,
       updates: 0,
-      size: 0
+      size: 0,
     });
   }, [enabled]);
 
@@ -172,7 +182,7 @@ export function useTabCache(options: TabCacheOptions = {}) {
       }
     });
 
-    expiredKeys.forEach(key => {
+    expiredKeys.forEach((key) => {
       cacheManager.remove(key);
       cacheTimestamps.current.delete(key);
     });
@@ -185,9 +195,9 @@ export function useTabCache(options: TabCacheOptions = {}) {
   // キャッシュ統計を更新
   const updateCacheStats = useCallback(() => {
     const stats = cacheManager.getStats();
-    setCacheStats(prev => ({
+    setCacheStats((prev) => ({
       ...prev,
-      size: stats.totalSize
+      size: stats.totalSize,
     }));
   }, []);
 
@@ -232,6 +242,6 @@ export function useTabCache(options: TabCacheOptions = {}) {
     isCached: (path: string, dataType?: string) => {
       const key = generateCacheKey(path, dataType);
       return cacheTimestamps.current.has(key);
-    }
+    },
   };
 }

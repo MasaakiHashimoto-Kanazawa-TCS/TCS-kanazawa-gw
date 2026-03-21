@@ -46,7 +46,7 @@ sleep 3
 # フロントエンドサーバー起動
 print_info "フロントエンドサーバーを起動中..."
 cd frontend
-npm run dev &
+vp dev &
 FRONTEND_PID=$!
 cd ..
 
@@ -57,7 +57,7 @@ echo ""
 print_success "🎉 開発サーバーが起動しました！"
 echo ""
 echo "アクセス URL:"
-echo "  フロントエンド: http://localhost:3000"
+echo "  フロントエンド: http://localhost:5173"
 echo "  バックエンドAPI: http://localhost:8000"
 echo "  API ドキュメント: http://localhost:8000/docs"
 echo ""

@@ -2,5 +2,5 @@
  * サービスのエクスポート
  */
 
-export { SensorService, sensorService } from './sensorService';
-export { PlantService, plantService } from './plantService';
+export { SensorService, sensorService } from "./sensorService";
+export { PlantService, plantService } from "./plantService";

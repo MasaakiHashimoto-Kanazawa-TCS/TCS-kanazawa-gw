@@ -2,12 +2,9 @@
  * カスタム期間選択コンポーネント
  */
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { Button, Modal, Card, CardContent } from '@/components/ui';
-import type { CustomTimeRange } from '@/types';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import { Button, Modal, Card, CardContent } from "@/components/ui";
+import type { CustomTimeRange } from "@/types";
 
 export interface CustomDateRangePickerProps {
   isOpen: boolean;
@@ -22,32 +19,32 @@ export function CustomDateRangePicker({
   onClose,
   onApply,
   initialRange,
-  className
+  className,
 }: CustomDateRangePickerProps) {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   // 初期値の設定
   useEffect(() => {
     if (initialRange) {
-      setStartDate(initialRange.startDate.split('T')[0]);
-      setEndDate(initialRange.endDate.split('T')[0]);
+      setStartDate(initialRange.startDate.split("T")[0]);
+      setEndDate(initialRange.endDate.split("T")[0]);
     } else {
       // デフォルトは過去30日間
       const end = new Date();
       const start = new Date();
       start.setDate(start.getDate() - 30);
-      
-      setEndDate(end.toISOString().split('T')[0]);
-      setStartDate(start.toISOString().split('T')[0]);
+
+      setEndDate(end.toISOString().split("T")[0]);
+      setStartDate(start.toISOString().split("T")[0]);
     }
   }, [initialRange, isOpen]);
 
   // バリデーション
   const validateDates = (start: string, end: string): string | null => {
     if (!start || !end) {
-      return '開始日と終了日を選択してください';
+      return "開始日と終了日を選択してください";
     }
 
     const startDateTime = new Date(start);
@@ -55,20 +52,22 @@ export function CustomDateRangePicker({
     const now = new Date();
 
     if (startDateTime > endDateTime) {
-      return '開始日は終了日より前である必要があります';
+      return "開始日は終了日より前である必要があります";
     }
 
     if (endDateTime > now) {
-      return '終了日は現在の日付より後にはできません';
+      return "終了日は現在の日付より後にはできません";
     }
 
-    const diffDays = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil(
+      (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60 * 24),
+    );
     if (diffDays > 365) {
-      return '期間は365日以内で選択してください';
+      return "期間は365日以内で選択してください";
     }
 
     if (diffDays < 1) {
-      return '期間は最低1日以上選択してください';
+      return "期間は最低1日以上選択してください";
     }
 
     return null;
@@ -83,7 +82,7 @@ export function CustomDateRangePicker({
 
     const range: CustomTimeRange = {
       startDate: new Date(startDate).toISOString(),
-      endDate: new Date(endDate + 'T23:59:59').toISOString()
+      endDate: new Date(endDate + "T23:59:59").toISOString(),
     };
 
     onApply(range);
@@ -95,9 +94,9 @@ export function CustomDateRangePicker({
     const end = new Date();
     const start = new Date();
     start.setDate(start.getDate() - days);
-    
-    setEndDate(end.toISOString().split('T')[0]);
-    setStartDate(start.toISOString().split('T')[0]);
+
+    setEndDate(end.toISOString().split("T")[0]);
+    setStartDate(start.toISOString().split("T")[0]);
     setError(null);
   };
 
@@ -124,12 +123,12 @@ export function CustomDateRangePicker({
           </h4>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { label: '過去7日間', days: 7 },
-              { label: '過去14日間', days: 14 },
-              { label: '過去30日間', days: 30 },
-              { label: '過去60日間', days: 60 },
-              { label: '過去90日間', days: 90 },
-              { label: '過去180日間', days: 180 }
+              { label: "過去7日間", days: 7 },
+              { label: "過去14日間", days: 14 },
+              { label: "過去30日間", days: 30 },
+              { label: "過去60日間", days: 60 },
+              { label: "過去90日間", days: 90 },
+              { label: "過去180日間", days: 180 },
             ].map((option) => (
               <Button
                 key={option.days}
@@ -145,9 +144,7 @@ export function CustomDateRangePicker({
 
         {/* 日付選択 */}
         <div>
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-            期間を指定
-          </h4>
+          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">期間を指定</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -161,10 +158,10 @@ export function CustomDateRangePicker({
                   setError(null);
                 }}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                max={new Date().toISOString().split('T')[0]}
+                max={new Date().toISOString().split("T")[0]}
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 終了日
@@ -178,7 +175,7 @@ export function CustomDateRangePicker({
                 }}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 min={startDate}
-                max={new Date().toISOString().split('T')[0]}
+                max={new Date().toISOString().split("T")[0]}
               />
             </div>
           </div>
@@ -191,7 +188,8 @@ export function CustomDateRangePicker({
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 選択期間: {getDaysDifference()}日間
                 <br />
-                {new Date(startDate).toLocaleDateString('ja-JP')} 〜 {new Date(endDate).toLocaleDateString('ja-JP')}
+                {new Date(startDate).toLocaleDateString("ja-JP")} 〜{" "}
+                {new Date(endDate).toLocaleDateString("ja-JP")}
               </div>
             </CardContent>
           </Card>
@@ -225,8 +223,8 @@ export function formatCustomTimeRange(range: CustomTimeRange): string {
   const start = new Date(range.startDate);
   const end = new Date(range.endDate);
   const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  
-  return `${start.toLocaleDateString('ja-JP')} 〜 ${end.toLocaleDateString('ja-JP')} (${days}日間)`;
+
+  return `${start.toLocaleDateString("ja-JP")} 〜 ${end.toLocaleDateString("ja-JP")} (${days}日間)`;
 }
 
 /**
@@ -236,11 +234,11 @@ export function isValidCustomTimeRange(range: CustomTimeRange): boolean {
   const start = new Date(range.startDate);
   const end = new Date(range.endDate);
   const now = new Date();
-  
+
   return (
     start <= end &&
     end <= now &&
-    (end.getTime() - start.getTime()) >= (24 * 60 * 60 * 1000) && // 最低1日
-    (end.getTime() - start.getTime()) <= (365 * 24 * 60 * 60 * 1000) // 最大365日
+    end.getTime() - start.getTime() >= 24 * 60 * 60 * 1000 && // 最低1日
+    end.getTime() - start.getTime() <= 365 * 24 * 60 * 60 * 1000 // 最大365日
   );
 }

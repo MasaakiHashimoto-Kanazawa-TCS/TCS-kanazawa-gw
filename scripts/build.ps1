@@ -67,7 +67,7 @@ function Invoke-Cleanup {
     # フロントエンドクリーンアップ
     if (Test-Path "frontend") {
         Push-Location frontend
-        if (Test-Path ".next") { Remove-Item -Recurse -Force ".next" }
+        if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
         if (Test-Path "out") { Remove-Item -Recurse -Force "out" }
         if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
         Pop-Location
@@ -138,39 +138,25 @@ function Build-Frontend {
     try {
         # 依存関係の確認
         Write-Host "依存関係を確認中..." -ForegroundColor Gray
-        npm ci
-        
-        # 型チェック
-        Write-Host "TypeScript型チェック中..." -ForegroundColor Gray
-        npm run type-check
+        vp install
+
+        # コード品質チェック (フォーマット・リント・型チェック)
+        Write-Host "コード品質チェック中..." -ForegroundColor Gray
+        vp check
         if ($LASTEXITCODE -ne 0) {
-            throw "型チェックが失敗しました"
+            throw "コード品質チェックが失敗しました"
         }
-        
-        # リンティング
-        Write-Host "ESLintチェック中..." -ForegroundColor Gray
-        npm run lint
-        if ($LASTEXITCODE -ne 0) {
-            throw "リンティングが失敗しました"
-        }
-        
+
         # テスト実行
         Write-Host "テストを実行中..." -ForegroundColor Gray
-        npm run test -- --watchAll=false
+        vp test
         if ($LASTEXITCODE -ne 0) {
             throw "テストが失敗しました"
         }
-        
+
         # ビルド
-        Write-Host "Next.jsアプリケーションをビルド中..." -ForegroundColor Gray
-        if ($Environment -eq "development") {
-            $env:NODE_ENV = "development"
-        }
-        else {
-            $env:NODE_ENV = "production"
-        }
-        
-        npm run build
+        Write-Host "Viteアプリケーションをビルド中..." -ForegroundColor Gray
+        vp build
         if ($LASTEXITCODE -ne 0) {
             throw "ビルドが失敗しました"
         }
@@ -234,7 +220,7 @@ function Show-BuildSummary {
         Write-Host ""
         Write-Host "次のステップ:" -ForegroundColor Cyan
         Write-Host "1. バックエンド: backend/ ディレクトリをサーバーにデプロイ"
-        Write-Host "2. フロントエンド: frontend/.next/ または frontend/out/ をホスティングサービスにデプロイ"
+        Write-Host "2. フロントエンド: frontend/dist/ をホスティングサービスにデプロイ"
     }
 }
 

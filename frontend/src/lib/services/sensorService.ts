@@ -2,11 +2,11 @@
  * センサーデータサービス
  */
 
-import type { SensorData, DataSummary, DataType, GetDataParams, GetSummaryParams } from '@/types';
-import { apiClient } from '@/lib/api/client';
-import { API_ENDPOINTS } from '@/lib/api/endpoints';
-import { transformSensorData, transformDynamoDBData, generateMockSensorData } from '@/lib/utils/dataTransform';
-import { IS_DEVELOPMENT } from '@/lib/constants';
+import type { SensorData, DataSummary, DataType, GetDataParams, GetSummaryParams } from "@/types";
+import { apiClient } from "@/lib/api/client";
+import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import { transformSensorData, generateMockSensorData } from "@/lib/utils/dataTransform";
+import { IS_DEVELOPMENT } from "@/lib/constants";
 
 export class SensorService {
   /**
@@ -14,26 +14,26 @@ export class SensorService {
    */
   async getData(params: GetDataParams): Promise<SensorData[]> {
     try {
-      console.log('SensorService.getData called with:', params);
-      console.log('IS_DEVELOPMENT:', IS_DEVELOPMENT);
-      
+      console.log("SensorService.getData called with:", params);
+      console.log("IS_DEVELOPMENT:", IS_DEVELOPMENT);
+
       // 現在のバックエンドAPIはHTML形式なので、開発中はモックデータを使用
       if (IS_DEVELOPMENT) {
-        console.log('Using mock data (development mode)');
+        console.log("Using mock data (development mode)");
         return this.getMockData(params.data_type, params.limit || 100);
       }
 
-      console.log('Calling API endpoint:', API_ENDPOINTS.DATA);
+      console.log("Calling API endpoint:", API_ENDPOINTS.DATA);
       // 将来のJSON API実装（DynamoDBデータ構造に対応）
       const response = await apiClient.get<any[]>(API_ENDPOINTS.DATA, params);
-      console.log('API response:', response);
-      
+      console.log("API response:", response);
+
       const transformedData = transformSensorData(response);
-      console.log('Transformed data:', transformedData);
-      
+      console.log("Transformed data:", transformedData);
+
       return transformedData;
     } catch (error) {
-      console.error('Failed to fetch real data, using mock data:', error);
+      console.error("Failed to fetch real data, using mock data:", error);
       return this.getMockData(params.data_type, params.limit || 100);
     }
   }
@@ -51,11 +51,11 @@ export class SensorService {
 
       // 将来のJSON API実装
       const response = await apiClient.get<SensorData>(API_ENDPOINTS.LATEST, {
-        data_type: dataType
+        data_type: dataType,
       });
       return response;
     } catch (error) {
-      console.warn('Failed to fetch latest data, using mock data:', error);
+      console.warn("Failed to fetch latest data, using mock data:", error);
       const mockData = this.getMockData(dataType, 1);
       return mockData[0] || null;
     }
@@ -66,30 +66,30 @@ export class SensorService {
    */
   async getSummary(params: GetSummaryParams): Promise<DataSummary> {
     try {
-      console.log('SensorService.getSummary called with:', params);
-      
+      console.log("SensorService.getSummary called with:", params);
+
       // 開発中はモックデータから計算
       if (IS_DEVELOPMENT) {
-        console.log('Using mock data for summary (development mode)');
+        console.log("Using mock data for summary (development mode)");
         const mockData = this.getMockData(params.data_type, 100);
-        return this.calculateSummary(mockData, params.period || 'day');
+        return this.calculateSummary(mockData, params.period || "day");
       }
 
       // 実際のAPIを呼び出す際は、広い期間を指定
       const apiParams = {
         ...params,
-        period: 'year' // 1年間のデータでサマリーを計算
+        period: "year", // 1年間のデータでサマリーを計算
       };
-      
-      console.log('Calling summary API with params:', apiParams);
+
+      console.log("Calling summary API with params:", apiParams);
       const response = await apiClient.get<DataSummary>(API_ENDPOINTS.SUMMARY, apiParams);
-      console.log('Summary API response:', response);
-      
+      console.log("Summary API response:", response);
+
       return response;
     } catch (error) {
-      console.error('Failed to fetch summary, using mock data:', error);
+      console.error("Failed to fetch summary, using mock data:", error);
       const mockData = this.getMockData(params.data_type, 100);
-      return this.calculateSummary(mockData, params.period || 'day');
+      return this.calculateSummary(mockData, params.period || "day");
     }
   }
 
@@ -102,19 +102,19 @@ export class SensorService {
     let limit: number;
 
     switch (timeRange) {
-      case '24h':
+      case "24h":
         startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         limit = 144; // 10分間隔
         break;
-      case '7d':
+      case "7d":
         startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         limit = 168; // 1時間間隔
         break;
-      case '30d':
+      case "30d":
         startTime = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         limit = 720; // 1時間間隔
         break;
-      case '150d':
+      case "150d":
         startTime = new Date(now.getTime() - 150 * 24 * 60 * 60 * 1000);
         limit = 3600; // 1時間間隔
         break;
@@ -127,18 +127,22 @@ export class SensorService {
       data_type: dataType,
       start_time: startTime.toISOString(),
       end_time: now.toISOString(),
-      limit
+      limit,
     });
   }
 
   /**
    * カスタム期間でデータを取得
    */
-  async getDataByCustomRange(dataType: DataType, startTime: string, endTime: string): Promise<SensorData[]> {
+  async getDataByCustomRange(
+    dataType: DataType,
+    startTime: string,
+    endTime: string,
+  ): Promise<SensorData[]> {
     const start = new Date(startTime);
     const end = new Date(endTime);
     const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     // 期間に応じてデータポイント数を調整
     let limit: number;
     if (diffDays <= 1) {
@@ -155,20 +159,17 @@ export class SensorService {
       data_type: dataType,
       start_time: startTime,
       end_time: endTime,
-      limit
+      limit,
     });
   }
 
   /**
    * リアルタイムデータ更新の購読（将来実装）
    */
-  subscribeToUpdates(
-    dataType: DataType,
-    callback: (data: SensorData) => void
-  ): () => void {
+  subscribeToUpdates(dataType: DataType, callback: (data: SensorData) => void): () => void {
     // WebSocket実装予定
     console.log(`Subscribing to ${dataType} updates`);
-    
+
     // 現在は定期的なポーリングで代用
     const interval = setInterval(async () => {
       try {
@@ -177,7 +178,7 @@ export class SensorService {
           callback(latestData);
         }
       } catch (error) {
-        console.error('Failed to fetch real-time data:', error);
+        console.error("Failed to fetch real-time data:", error);
       }
     }, 5000); // 5秒間隔
 
@@ -205,18 +206,18 @@ export class SensorService {
         minimum: 0,
         maximum: 0,
         count: 0,
-        period
+        period,
       };
     }
 
-    const values = data.map(item => item.value);
-    
+    const values = data.map((item) => item.value);
+
     return {
       average: values.reduce((sum, val) => sum + val, 0) / values.length,
       minimum: Math.min(...values),
       maximum: Math.max(...values),
       count: values.length,
-      period
+      period,
     };
   }
 }

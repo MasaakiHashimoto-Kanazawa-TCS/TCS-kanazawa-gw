@@ -5,18 +5,22 @@
 ## 📁 スクリプト一覧
 
 ### セットアップスクリプト
+
 - `setup.sh` - Linux/macOS用セットアップスクリプト
 - `setup.ps1` - Windows PowerShell用セットアップスクリプト
 
 ### 開発サーバースクリプト
+
 - `start-dev.sh` - Linux/macOS用開発サーバー起動スクリプト
 - `start-dev.ps1` - Windows PowerShell用開発サーバー起動スクリプト
 
 ### テストスクリプト
+
 - `test.sh` - Linux/macOS用テスト実行スクリプト
 - `test.ps1` - Windows PowerShell用テスト実行スクリプト
 
 ### ビルドスクリプト
+
 - `build.ps1` - Windows PowerShell用ビルドスクリプト
 
 ## 🚀 使用方法
@@ -24,12 +28,14 @@
 ### 初回セットアップ
 
 **Linux/macOS:**
+
 ```bash
 chmod +x scripts/*.sh
 ./scripts/setup.sh
 ```
 
 **Windows PowerShell:**
+
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\scripts\setup.ps1
@@ -38,22 +44,26 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### 開発サーバー起動
 
 **Linux/macOS:**
+
 ```bash
 ./scripts/start-dev.sh
 ```
 
 **Windows PowerShell:**
+
 ```powershell
 .\scripts\start-dev.ps1
 ```
 
 **オプション:**
+
 - `-BackendOnly` - バックエンドサーバーのみ起動
 - `-FrontendOnly` - フロントエンドサーバーのみ起動
 
 ### テスト実行
 
 **Linux/macOS:**
+
 ```bash
 ./scripts/test.sh              # 全テスト実行
 ./scripts/test.sh backend      # バックエンドのみ
@@ -61,6 +71,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 **Windows PowerShell:**
+
 ```powershell
 .\scripts\test.ps1                    # 全テスト実行
 .\scripts\test.ps1 -Target backend   # バックエンドのみ
@@ -72,6 +83,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### ビルド
 
 **Windows PowerShell:**
+
 ```powershell
 .\scripts\build.ps1                           # 全体を本番ビルド
 .\scripts\build.ps1 -Target frontend         # フロントエンドのみ
@@ -84,12 +96,14 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### setup.sh / setup.ps1
 
 **機能:**
+
 - 前提条件のチェック (Python, Node.js, uv)
 - バックエンド依存関係のインストール
 - フロントエンド依存関係のインストール
 - 環境変数ファイルの作成
 
 **使用例:**
+
 ```bash
 ./scripts/setup.sh
 ```
@@ -97,12 +111,14 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### start-dev.sh / start-dev.ps1
 
 **機能:**
+
 - バックエンドサーバーの起動 (http://localhost:8000)
-- フロントエンドサーバーの起動 (http://localhost:3000)
+- フロントエンドサーバーの起動 (http://localhost:5173)
 - サーバーの監視とエラーハンドリング
 - Ctrl+C での安全な停止
 
 **使用例:**
+
 ```powershell
 .\scripts\start-dev.ps1 -BackendOnly  # バックエンドのみ
 ```
@@ -110,6 +126,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### test.sh / test.ps1
 
 **機能:**
+
 - 単体テストの実行
 - カバレッジレポートの生成
 - コード品質チェック (リンティング、フォーマット)
@@ -117,6 +134,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 - ビルドテスト
 
 **使用例:**
+
 ```powershell
 .\scripts\test.ps1 -Coverage -Target backend
 ```
@@ -124,12 +142,14 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### build.ps1
 
 **機能:**
+
 - 本番用ビルドの作成
 - テストとリンティングの実行
 - 依存関係の最適化
 - 静的ファイルの生成
 
 **使用例:**
+
 ```powershell
 .\scripts\build.ps1 -Clean -Environment production
 ```
@@ -151,6 +171,7 @@ chmod +x scripts/*.sh
 ### ポート競合エラー
 
 開発サーバーが起動しない場合、以下のポートが使用されていないか確認してください：
+
 - バックエンド: 8000
 - フロントエンド: 3000
 
@@ -163,8 +184,8 @@ uv sync
 
 # フロントエンド
 cd frontend
-rm -rf node_modules package-lock.json
-npm install
+rm -rf node_modules
+vp install
 ```
 
 ## 📝 カスタマイズ

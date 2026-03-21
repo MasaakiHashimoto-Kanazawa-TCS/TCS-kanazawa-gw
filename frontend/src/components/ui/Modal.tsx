@@ -2,19 +2,17 @@
  * モーダルコンポーネント
  */
 
-'use client';
-
-import { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { Button } from './Button';
-import { cn } from '@/lib/utils';
+import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { Button } from "./Button";
+import { cn } from "@/lib/utils";
 
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
   showCloseButton?: boolean;
   closeOnOverlayClick?: boolean;
   closeOnEscape?: boolean;
@@ -22,10 +20,10 @@ export interface ModalProps {
 }
 
 const sizeVariants = {
-  sm: 'max-w-md',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
-  xl: 'max-w-4xl'
+  sm: "max-w-md",
+  md: "max-w-lg",
+  lg: "max-w-2xl",
+  xl: "max-w-4xl",
 };
 
 export function Modal({
@@ -33,11 +31,11 @@ export function Modal({
   onClose,
   title,
   children,
-  size = 'md',
+  size = "md",
   showCloseButton = true,
   closeOnOverlayClick = true,
   closeOnEscape = true,
-  className
+  className,
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -46,13 +44,13 @@ export function Modal({
     if (!isOpen || !closeOnEscape) return;
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, closeOnEscape, onClose]);
 
   // フォーカストラップ
@@ -63,13 +61,13 @@ export function Modal({
     if (!modal) return;
 
     const focusableElements = modal.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
     const firstElement = focusableElements[0] as HTMLElement;
     const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
 
     const handleTabKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Tab') return;
+      if (event.key !== "Tab") return;
 
       if (event.shiftKey) {
         if (document.activeElement === firstElement) {
@@ -84,22 +82,22 @@ export function Modal({
       }
     };
 
-    document.addEventListener('keydown', handleTabKey);
+    document.addEventListener("keydown", handleTabKey);
     firstElement?.focus();
 
-    return () => document.removeEventListener('keydown', handleTabKey);
+    return () => document.removeEventListener("keydown", handleTabKey);
   }, [isOpen]);
 
   // ボディのスクロールを無効化
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
 
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
@@ -118,9 +116,9 @@ export function Modal({
         <div
           ref={modalRef}
           className={cn(
-            'relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:p-6',
+            "relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:p-6",
             sizeVariants[size],
-            className
+            className,
           )}
         >
           {/* ヘッダー */}
@@ -138,7 +136,12 @@ export function Modal({
                   aria-label="モーダルを閉じる"
                 >
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               )}
@@ -146,9 +149,7 @@ export function Modal({
           )}
 
           {/* コンテンツ */}
-          <div className="text-gray-600 dark:text-gray-300">
-            {children}
-          </div>
+          <div className="text-gray-600 dark:text-gray-300">{children}</div>
         </div>
       </div>
     </div>
@@ -168,18 +169,18 @@ export interface ConfirmDialogProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  variant?: 'default' | 'danger';
+  variant?: "default" | "danger";
 }
 
 export function ConfirmDialog({
   isOpen,
   onClose,
   onConfirm,
-  title = '確認',
+  title = "確認",
   message,
-  confirmText = '確認',
-  cancelText = 'キャンセル',
-  variant = 'default'
+  confirmText = "確認",
+  cancelText = "キャンセル",
+  variant = "default",
 }: ConfirmDialogProps) {
   const handleConfirm = () => {
     onConfirm();
@@ -194,10 +195,7 @@ export function ConfirmDialog({
           <Button variant="outline" onClick={onClose}>
             {cancelText}
           </Button>
-          <Button
-            variant={variant === 'danger' ? 'danger' : 'primary'}
-            onClick={handleConfirm}
-          >
+          <Button variant={variant === "danger" ? "danger" : "primary"} onClick={handleConfirm}>
             {confirmText}
           </Button>
         </div>

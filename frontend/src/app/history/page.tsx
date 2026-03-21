@@ -2,28 +2,26 @@
  * 履歴ページ
  */
 
-'use client';
-
-import { useState, useMemo, useEffect } from 'react';
-import { AppLayout } from '@/components/layout';
+import { useState, useMemo, useEffect } from "react";
+import { AppLayout } from "@/components/layout";
 import {
   ResponsiveTimeSeriesChart,
   ResponsiveComparisonChart,
   ChartControls,
   ChartStats,
-  ChartToolbar
-} from '@/components/charts';
-import { Card, CardContent, Button, LoadingSpinner, ErrorMessage } from '@/components/ui';
-import { useSensorData, useMultiSensorData } from '@/hooks';
-import { sensorService } from '@/lib/services';
-import { calculateDataStats } from '@/lib/utils/dataTransform';
-import { DEFAULT_PLANT } from '@/types';
-import type { TimeRange, DataType, CustomTimeRange, SensorData } from '@/types';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+  ChartToolbar,
+} from "@/components/charts";
+import { Card, CardContent, Button, LoadingSpinner, ErrorMessage } from "@/components/ui";
+import { useMultiSensorData } from "@/hooks";
+import { sensorService } from "@/lib/services";
+import { calculateDataStats } from "@/lib/utils/dataTransform";
+import { DEFAULT_PLANT } from "@/types";
+import type { TimeRange, DataType, CustomTimeRange, SensorData } from "@/types";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export default function HistoryPage() {
-  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('24h');
-  const [selectedDataType, setSelectedDataType] = useState<DataType>('temperature');
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>("24h");
+  const [selectedDataType, setSelectedDataType] = useState<DataType>("temperature");
   const [showComparison, setShowComparison] = useState(false);
   const [customTimeRange, setCustomTimeRange] = useState<CustomTimeRange>();
   const [customData, setCustomData] = useState<SensorData[]>([]);
@@ -38,36 +36,36 @@ export default function HistoryPage() {
   // センサーデータを直接取得
   useEffect(() => {
     const fetchSensorData = async () => {
-      if (selectedTimeRange === 'custom') return; // カスタム期間の場合はスキップ
-      
+      if (selectedTimeRange === "custom") return; // カスタム期間の場合はスキップ
+
       try {
-        console.log('HistoryPage: Fetching sensor data', { selectedDataType, selectedTimeRange });
+        console.log("HistoryPage: Fetching sensor data", { selectedDataType, selectedTimeRange });
         setSensorLoading(true);
         setSensorError(null);
-        
+
         const data = await sensorService.getDataByTimeRange(selectedDataType, selectedTimeRange);
-        console.log('HistoryPage: Sensor data fetched', data.length);
+        console.log("HistoryPage: Sensor data fetched", data.length);
         setSensorData(data);
       } catch (error) {
-        console.error('HistoryPage: Sensor data fetch error', error);
-        setSensorError(error instanceof Error ? error.message : 'データの取得に失敗しました');
+        console.error("HistoryPage: Sensor data fetch error", error);
+        setSensorError(error instanceof Error ? error.message : "データの取得に失敗しました");
       } finally {
         setSensorLoading(false);
       }
     };
 
-    fetchSensorData();
+    void fetchSensorData();
   }, [selectedDataType, selectedTimeRange]);
 
   const refreshSensorData = async () => {
-    if (selectedTimeRange === 'custom') return;
-    
+    if (selectedTimeRange === "custom") return;
+
     try {
       setSensorLoading(true);
       const data = await sensorService.getDataByTimeRange(selectedDataType, selectedTimeRange);
       setSensorData(data);
     } catch (error) {
-      setSensorError(error instanceof Error ? error.message : 'データの取得に失敗しました');
+      setSensorError(error instanceof Error ? error.message : "データの取得に失敗しました");
     } finally {
       setSensorLoading(false);
     }
@@ -78,15 +76,15 @@ export default function HistoryPage() {
     data: multiData,
     loading: multiLoading,
     error: multiError,
-    refetch: refreshMultiData
-  } = useMultiSensorData(['temperature', 'pH'], selectedTimeRange);
+    refetch: refreshMultiData,
+  } = useMultiSensorData(["temperature", "pH"], selectedTimeRange);
 
   // 統計情報の計算
   const stats = useMemo(() => {
     if (showComparison) {
       return {
         temperature: calculateDataStats(multiData.temperature || []),
-        pH: calculateDataStats(multiData.pH || [])
+        pH: calculateDataStats(multiData.pH || []),
       };
     } else {
       return calculateDataStats(sensorData);
@@ -95,7 +93,7 @@ export default function HistoryPage() {
 
   // 型ガード関数
   const isComparisonStats = (stats: any): stats is { temperature: any; pH: any } => {
-    return showComparison && 'temperature' in stats && 'pH' in stats;
+    return showComparison && "temperature" in stats && "pH" in stats;
   };
 
   // カスタム期間データの取得
@@ -107,11 +105,11 @@ export default function HistoryPage() {
       const data = await sensorService.getDataByCustomRange(
         selectedDataType,
         range.startDate,
-        range.endDate
+        range.endDate,
       );
       setCustomData(data);
     } catch (error) {
-      setCustomError(error instanceof Error ? error.message : 'データの取得に失敗しました');
+      setCustomError(error instanceof Error ? error.message : "データの取得に失敗しました");
     } finally {
       setCustomLoading(false);
     }
@@ -119,36 +117,38 @@ export default function HistoryPage() {
 
   // カスタム期間が変更された時の処理
   useEffect(() => {
-    if (selectedTimeRange === 'custom' && customTimeRange) {
-      fetchCustomData(customTimeRange);
+    if (selectedTimeRange === "custom" && customTimeRange) {
+      void fetchCustomData(customTimeRange);
     }
   }, [customTimeRange, selectedDataType]);
 
   // データ更新
   const handleRefresh = () => {
-    if (selectedTimeRange === 'custom' && customTimeRange) {
-      fetchCustomData(customTimeRange);
+    if (selectedTimeRange === "custom" && customTimeRange) {
+      void fetchCustomData(customTimeRange);
     } else if (showComparison) {
-      refreshMultiData();
+      void refreshMultiData();
     } else {
-      refreshSensorData();
+      void refreshSensorData();
     }
   };
 
   // 表示用データの決定
-  const displayData = selectedTimeRange === 'custom' ? customData : sensorData;
-  const displayLoading = selectedTimeRange === 'custom' ? customLoading : (showComparison ? multiLoading : sensorLoading);
-  const displayError = selectedTimeRange === 'custom' ? customError : (showComparison ? multiError : sensorError);
+  const displayData = selectedTimeRange === "custom" ? customData : sensorData;
+  const displayLoading =
+    selectedTimeRange === "custom" ? customLoading : showComparison ? multiLoading : sensorLoading;
+  const displayError =
+    selectedTimeRange === "custom" ? customError : showComparison ? multiError : sensorError;
 
   // デバッグログ
-  console.log('HistoryPage loading states:', {
+  console.log("HistoryPage loading states:", {
     selectedTimeRange,
     showComparison,
     customLoading,
     multiLoading,
     sensorLoading,
     displayLoading,
-    dataLength: displayData?.length
+    dataLength: displayData?.length,
   });
 
   return (
@@ -162,11 +162,11 @@ export default function HistoryPage() {
             actions={
               <div className="flex items-center space-x-2">
                 <Button
-                  variant={showComparison ? 'primary' : 'outline'}
+                  variant={showComparison ? "primary" : "outline"}
                   size="sm"
                   onClick={() => setShowComparison(!showComparison)}
                 >
-                  {showComparison ? '比較表示中' : '比較表示'}
+                  {showComparison ? "比較表示中" : "比較表示"}
                 </Button>
               </div>
             }
@@ -191,11 +191,7 @@ export default function HistoryPage() {
 
           {/* エラー表示 */}
           {displayError && (
-            <ErrorMessage
-              error={displayError}
-              retry={handleRefresh}
-              variant="banner"
-            />
+            <ErrorMessage error={displayError} retry={handleRefresh} variant="banner" />
           )}
 
           {/* ローディング表示 */}
@@ -240,24 +236,18 @@ export default function HistoryPage() {
                       <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">
                         温度
                       </h4>
-                      <ChartStats
-                        stats={stats.temperature}
-                        dataType="temperature"
-                      />
+                      <ChartStats stats={stats.temperature} dataType="temperature" />
                     </div>
                     <div>
                       <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">
                         pH
                       </h4>
-                      <ChartStats
-                        stats={stats.pH}
-                        dataType="pH"
-                      />
+                      <ChartStats stats={stats.pH} dataType="pH" />
                     </div>
                   </div>
                 ) : (
                   <ChartStats
-                    stats={selectedTimeRange === 'custom' ? calculateDataStats(displayData) : stats}
+                    stats={selectedTimeRange === "custom" ? calculateDataStats(displayData) : stats}
                     dataType={selectedDataType}
                   />
                 )}
@@ -282,7 +272,7 @@ export default function HistoryPage() {
                   disabled={displayLoading || !!displayError}
                   onClick={() => {
                     // CSV エクスポート機能（将来実装）
-                    alert('CSV エクスポート機能は今後実装予定です');
+                    alert("CSV エクスポート機能は今後実装予定です");
                   }}
                 >
                   CSV ダウンロード

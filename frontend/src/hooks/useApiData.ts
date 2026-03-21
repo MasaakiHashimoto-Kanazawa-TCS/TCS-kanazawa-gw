@@ -2,8 +2,8 @@
  * 汎用APIデータ取得フック
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { getErrorMessage, logError } from '@/lib/utils/errorHandler';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { getErrorMessage, logError } from "@/lib/utils/errorHandler";
 
 export interface UseApiDataOptions {
   enabled?: boolean;
@@ -25,14 +25,9 @@ export interface UseApiDataResult<T> {
  */
 export function useApiData<T>(
   fetcher: () => Promise<T>,
-  options: UseApiDataOptions = {}
+  options: UseApiDataOptions = {},
 ): UseApiDataResult<T> {
-  const {
-    enabled = true,
-    refetchInterval,
-    onSuccess,
-    onError
-  } = options;
+  const { enabled = true, refetchInterval, onSuccess, onError } = options;
 
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
@@ -49,7 +44,7 @@ export function useApiData<T>(
 
   // refを更新
   useEffect(() => {
-    console.log('useApiData: Updating refs');
+    console.log("useApiData: Updating refs");
     fetcherRef.current = fetcher;
     onSuccessRef.current = onSuccess;
     onErrorRef.current = onError;
@@ -57,11 +52,11 @@ export function useApiData<T>(
 
   const fetchData = useCallback(async (isRefetch = false) => {
     if (!enabled) {
-      console.log('useApiData: Fetch disabled');
+      console.log("useApiData: Fetch disabled");
       return;
     }
 
-    console.log('useApiData: Starting fetch, isRefetch:', isRefetch);
+    console.log("useApiData: Starting fetch, isRefetch:", isRefetch);
 
     try {
       if (isRefetch) {
@@ -72,23 +67,23 @@ export function useApiData<T>(
       setError(null);
 
       const result = await fetcherRef.current();
-      console.log('useApiData: Fetch successful, result:', result);
-      
+      console.log("useApiData: Fetch successful, result:", result);
+
       if (mountedRef.current) {
         setData(result);
         onSuccessRef.current?.(result);
       }
     } catch (err) {
-      console.error('useApiData: Fetch error:', err);
+      console.error("useApiData: Fetch error:", err);
       if (mountedRef.current) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);
-        logError(err, 'useApiData');
+        logError(err, "useApiData");
         onErrorRef.current?.(err);
       }
     } finally {
       if (mountedRef.current) {
-        console.log('useApiData: Fetch completed, setting loading to false');
+        console.log("useApiData: Fetch completed, setting loading to false");
         setLoading(false);
         setIsRefetching(false);
       }
@@ -101,10 +96,10 @@ export function useApiData<T>(
 
   // 初回データ取得
   useEffect(() => {
-    console.log('useApiData: Initial fetch effect, enabled:', enabled);
+    console.log("useApiData: Initial fetch effect, enabled:", enabled);
     if (enabled) {
-      console.log('useApiData: Calling fetchData for initial load');
-      fetchData();
+      console.log("useApiData: Calling fetchData for initial load");
+      void fetchData();
     }
   }, [enabled]);
 
@@ -112,7 +107,7 @@ export function useApiData<T>(
   useEffect(() => {
     if (refetchInterval && enabled && refetchInterval > 0) {
       intervalRef.current = setInterval(() => {
-        fetchData(true);
+        void fetchData(true);
       }, refetchInterval);
 
       return () => {
@@ -138,6 +133,6 @@ export function useApiData<T>(
     loading,
     error,
     refetch,
-    isRefetching
+    isRefetching,
   };
 }

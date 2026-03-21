@@ -2,13 +2,10 @@
  * ナビゲーションコンポーネント
  */
 
-'use client';
-
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { useTabPrefetch } from '@/hooks/useTabPrefetch';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { useTabPrefetch } from "@/hooks/useTabPrefetch";
 
 export interface NavigationItem {
   name: string;
@@ -18,71 +15,96 @@ export interface NavigationItem {
 }
 
 export interface NavigationProps {
-  items: NavigationItem[];
+  items?: NavigationItem[];
   className?: string;
 }
 
 const defaultNavigationItems: NavigationItem[] = [
   {
-    name: 'ダッシュボード',
-    href: '/',
+    name: "ダッシュボード",
+    href: "/",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6a2 2 0 01-2 2H10a2 2 0 01-2-2V5z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6a2 2 0 01-2 2H10a2 2 0 01-2-2V5z"
+        />
       </svg>
-    )
+    ),
   },
   {
-    name: '履歴',
-    href: '/history',
+    name: "履歴",
+    href: "/history",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+        />
       </svg>
-    )
+    ),
   },
   {
-    name: '植物詳細',
-    href: '/plant',
+    name: "植物詳細",
+    href: "/plant",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
-    )
+    ),
   },
   {
-    name: 'アラート',
-    href: '/alerts',
+    name: "アラート",
+    href: "/alerts",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M15 17h5l-5 5v-5zM12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
-    )
-  }
+    ),
+  },
 ];
 
 export function Navigation({ items = defaultNavigationItems, className }: NavigationProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   // タブプリフェッチ機能
   const { handleMouseEnter, handleMouseLeave } = useTabPrefetch({
     enabled: true,
     config: {
       prefetchOnHover: true,
       prefetchDelay: 150, // 150ms後にプリフェッチ開始
-      maxPrefetchConcurrency: 2
-    }
+      maxPrefetchConcurrency: 2,
+    },
   });
 
-  const navigationItems = items.map(item => ({
+  const navigationItems = items.map((item) => ({
     ...item,
-    current: pathname === item.href
+    current: pathname === item.href,
   }));
 
   return (
-    <nav className={cn('bg-white dark:bg-gray-800 shadow', className)}>
+    <nav className={cn("bg-white dark:bg-gray-800 shadow", className)}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* デスクトップナビゲーション */}
@@ -90,19 +112,17 @@ export function Navigation({ items = defaultNavigationItems, className }: Naviga
             {navigationItems.map((item) => (
               <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 className={cn(
-                  'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors',
+                  "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors",
                   item.current
-                    ? 'border-green-500 text-gray-900 dark:text-white'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200'
+                    ? "border-green-500 text-gray-900 dark:text-white"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200",
                 )}
                 onMouseEnter={() => handleMouseEnter(item.href)}
                 onMouseLeave={() => handleMouseLeave(item.href)}
               >
-                {item.icon && (
-                  <span className="mr-2">{item.icon}</span>
-                )}
+                {item.icon && <span className="mr-2">{item.icon}</span>}
                 {item.name}
               </Link>
             ))}
@@ -117,12 +137,32 @@ export function Navigation({ items = defaultNavigationItems, className }: Naviga
             >
               <span className="sr-only">メニューを開く</span>
               {isMobileMenuOpen ? (
-                <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="block h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               ) : (
-                <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <svg
+                  className="block h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
               )}
             </button>
@@ -137,21 +177,19 @@ export function Navigation({ items = defaultNavigationItems, className }: Naviga
             {navigationItems.map((item) => (
               <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 className={cn(
-                  'block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors',
+                  "block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors",
                   item.current
-                    ? 'bg-green-50 border-green-500 text-green-700 dark:bg-green-900 dark:text-green-200'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700'
+                    ? "bg-green-50 border-green-500 text-green-700 dark:bg-green-900 dark:text-green-200"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700",
                 )}
                 onClick={() => setIsMobileMenuOpen(false)}
                 onMouseEnter={() => handleMouseEnter(item.href)}
                 onMouseLeave={() => handleMouseLeave(item.href)}
               >
                 <div className="flex items-center">
-                  {item.icon && (
-                    <span className="mr-3">{item.icon}</span>
-                  )}
+                  {item.icon && <span className="mr-3">{item.icon}</span>}
                   {item.name}
                 </div>
               </Link>

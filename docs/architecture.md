@@ -13,25 +13,26 @@ graph TB
     A[IoTセンサー] --> B[MQTT Broker]
     B --> C[AWS DynamoDB]
     C --> D[FastAPI Backend]
-    D --> E[Next.js Frontend]
+    D --> E[Vite+React Frontend]
     E --> F[ユーザー]
-    
+
     subgraph "AWS Cloud"
         C
         G[CloudWatch]
         H[Lambda Functions]
     end
-    
+
     subgraph "Backend Services"
         D
         I[Plotly Graph Service]
         J[DynamoDB Service]
     end
-    
-    subgraph "Frontend"
+
+    subgraph "Frontend (Vite SPA)"
         E
         K[React Components]
         L[Tailwind CSS]
+        M[React Router]
     end
 ```
 
@@ -40,12 +41,14 @@ graph TB
 ### 1. データ収集層
 
 #### IoTセンサー
+
 - **役割**: 環境データの収集
 - **データ種別**: 温度、湿度、土壌水分、光量
 - **通信プロトコル**: MQTT
 - **サンプリング間隔**: 5分間隔
 
 #### MQTT Broker
+
 - **役割**: センサーデータの中継
 - **プロトコル**: MQTT 3.1.1
 - **QoS**: Level 1 (At least once delivery)
@@ -53,6 +56,7 @@ graph TB
 ### 2. データ保存層
 
 #### AWS DynamoDB
+
 - **テーブル名**: `aggdata_table`
 - **パーティションキー**: `data_type` (String)
 - **ソートキー**: `timestamp` (String)
@@ -62,6 +66,7 @@ graph TB
   - `location` (String): 設置場所
 
 **テーブル設計例**:
+
 ```json
 {
   "data_type": "temperature",
@@ -75,6 +80,7 @@ graph TB
 ### 3. バックエンド層
 
 #### FastAPI Application
+
 - **フレームワーク**: FastAPI 0.115+
 - **Python**: 3.12+
 - **主要機能**:
@@ -85,6 +91,7 @@ graph TB
 #### サービス構成
 
 **DynamoDB Service** (`app/services/dynamodb.py`):
+
 ```python
 class DynamoDBService:
     def get_data(self, data_type: str, start_time: str, end_time: str)
@@ -93,6 +100,7 @@ class DynamoDBService:
 ```
 
 **Graph Service** (`app/services/graph.py`):
+
 ```python
 class GraphService:
     def create_time_series_plot(self, data: List[Dict])
@@ -102,8 +110,10 @@ class GraphService:
 
 ### 4. フロントエンド層
 
-#### Next.js Application
-- **フレームワーク**: Next.js 14 (App Router)
+#### Vite + React SPA
+
+- **ビルドツール**: Vite+ (`vp` CLI)
+- **フレームワーク**: React 18 + React Router 7 (BrowserRouter)
 - **TypeScript**: 5.2+
 - **スタイリング**: Tailwind CSS 3.3+
 
@@ -111,10 +121,13 @@ class GraphService:
 
 ```
 src/
-├── app/                    # App Router
-│   ├── layout.tsx         # ルートレイアウト
-│   ├── page.tsx           # ホームページ
-│   └── dashboard/         # ダッシュボード
+├── main.tsx               # エントリーポイント
+├── App.tsx                # BrowserRouter + Routes
+├── app/                   # ページコンポーネント
+│   ├── page.tsx           # ダッシュボード (/)
+│   ├── alerts/page.tsx    # アラート管理 (/alerts)
+│   ├── history/page.tsx   # データ履歴 (/history)
+│   └── plant/page.tsx     # 植物詳細 (/plant)
 ├── components/            # 再利用可能コンポーネント
 │   ├── charts/           # グラフコンポーネント
 │   ├── ui/               # UIコンポーネント
@@ -134,7 +147,7 @@ sequenceDiagram
     participant M as MQTT Broker
     participant D as DynamoDB
     participant L as Lambda Function
-    
+
     S->>M: センサーデータ送信
     M->>L: メッセージ受信
     L->>D: データ保存
@@ -149,7 +162,7 @@ sequenceDiagram
     participant F as Frontend
     participant B as Backend
     participant D as DynamoDB
-    
+
     U->>F: ページアクセス
     F->>B: データ取得API呼び出し
     B->>D: データクエリ
@@ -162,11 +175,13 @@ sequenceDiagram
 ## セキュリティ
 
 ### 認証・認可
+
 - **AWS IAM**: DynamoDBアクセス制御
 - **環境変数**: 機密情報の管理
 - **HTTPS**: 通信の暗号化
 
 ### データ保護
+
 - **データ暗号化**: DynamoDB暗号化
 - **アクセスログ**: CloudWatch Logs
 - **監査**: AWS CloudTrail
@@ -174,23 +189,27 @@ sequenceDiagram
 ## パフォーマンス
 
 ### バックエンド最適化
+
 - **接続プール**: DynamoDBクライアント
 - **キャッシュ**: Redis (将来実装予定)
 - **非同期処理**: FastAPI async/await
 
 ### フロントエンド最適化
-- **静的生成**: Next.js SSG
-- **画像最適化**: Next.js Image
+
+- **SPA**: Vite バンドル最適化 (Rolldown)
+- **キャッシュ**: クライアントサイドキャッシュ (cacheManager)
 - **コード分割**: Dynamic imports
 
 ## 監視・ログ
 
 ### メトリクス
+
 - **アプリケーションメトリクス**: CloudWatch
 - **エラー追跡**: CloudWatch Logs
 - **パフォーマンス**: X-Ray (将来実装予定)
 
 ### アラート
+
 - **データ異常**: CloudWatch Alarms
 - **システム障害**: SNS通知
 - **リソース使用量**: Auto Scaling
@@ -198,22 +217,26 @@ sequenceDiagram
 ## スケーラビリティ
 
 ### 水平スケーリング
+
 - **バックエンド**: ECS/Fargate
 - **フロントエンド**: CDN配信
 - **データベース**: DynamoDB Auto Scaling
 
 ### 垂直スケーリング
+
 - **コンピュートリソース**: EC2インスタンスタイプ変更
 - **ストレージ**: DynamoDB容量調整
 
 ## 災害復旧
 
 ### バックアップ
+
 - **データベース**: DynamoDB Point-in-time Recovery
 - **コード**: Git リポジトリ
 - **設定**: Infrastructure as Code
 
 ### 復旧手順
+
 1. データベース復旧
 2. アプリケーション再デプロイ
 3. 動作確認
@@ -222,11 +245,13 @@ sequenceDiagram
 ## 今後の拡張
 
 ### 短期計画
+
 - リアルタイムデータ更新 (WebSocket)
 - アラート機能
 - データエクスポート機能
 
 ### 長期計画
+
 - 機械学習による予測機能
 - モバイルアプリケーション
 - マルチテナント対応

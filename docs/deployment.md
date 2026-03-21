@@ -7,24 +7,28 @@
 ## 前提条件
 
 ### 共通要件
+
 - Git
 - Docker (推奨)
 - AWS CLI (AWS デプロイの場合)
 
 ### バックエンド要件
+
 - Python 3.12+
 - uv (Python パッケージマネージャー)
 - AWS アカウント (DynamoDB アクセス用)
 
 ### フロントエンド要件
+
 - Node.js 18.0.0+
-- npm 8.0.0+
+- Vite+ CLI (`vp`)
 
 ## 環境設定
 
 ### 環境変数
 
 #### バックエンド (.env)
+
 ```env
 # AWS設定
 AWS_ACCESS_KEY_ID=your_access_key_here
@@ -41,14 +45,15 @@ ENVIRONMENT=production
 ```
 
 #### フロントエンド (.env.local)
+
 ```env
 # API設定
-NEXT_PUBLIC_API_URL=https://api.your-domain.com
-NEXT_PUBLIC_ENVIRONMENT=production
+VITE_API_URL=https://api.your-domain.com
+VITE_ENVIRONMENT=production
 
 # アプリケーション設定
-NEXT_PUBLIC_APP_NAME=Plant Monitor
-NEXT_PUBLIC_APP_VERSION=0.1.0
+VITE_APP_NAME=Plant Monitor
+VITE_APP_VERSION=0.1.0
 ```
 
 ## ローカル開発環境
@@ -73,7 +78,7 @@ cp .env.example .env
 
 ```bash
 cd frontend
-npm install
+vp install
 cp .env.local.example .env.local
 # .env.localファイルを編集
 ```
@@ -87,7 +92,7 @@ uv run uvicorn app.main:app --reload
 
 # ターミナル2: フロントエンド
 cd frontend
-npm run dev
+vp dev
 ```
 
 ## Docker を使用したデプロイ
@@ -127,37 +132,38 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# vp CLI のインストール
+RUN npm install -g vite-plus
+
 # 依存関係のインストール
-COPY package*.json ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN vp install --frozen-lockfile
 
 # アプリケーションのビルド
 COPY . .
-RUN npm run build
+RUN vp build
 
-# 本番環境用イメージ
-FROM node:18-alpine AS runner
+# 本番環境用イメージ (nginx で静的ファイルを配信)
+FROM nginx:alpine AS runner
 
-WORKDIR /app
+# ビルド成果物をコピー
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# 必要なファイルのコピー
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# SPA フォールバック設定
+RUN printf 'server {\n  listen 80;\n  root /usr/share/nginx/html;\n  index index.html;\n  location / { try_files $uri $uri/ /index.html; }\n}\n' \
+    > /etc/nginx/conf.d/default.conf
 
 # ポート公開
-EXPOSE 3000
+EXPOSE 80
 
-# アプリケーション起動
-CMD ["node", "server.js"]
+CMD ["nginx", "-g", "daemon off;"]
 ```
 
 ### 2. Docker Compose
 
 ```yaml
 # docker-compose.yml
-version: '3.8'
+version: "3.8"
 
 services:
   backend:
@@ -175,10 +181,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NEXT_PUBLIC_ENVIRONMENT=production
+      - "80:80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -237,13 +240,14 @@ aws apigateway create-deployment \
 
 ```json
 {
-  "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "framework": "vite",
+  "buildCommand": "vp build",
+  "devCommand": "vp dev",
+  "installCommand": "vp install",
+  "outputDirectory": "dist",
   "env": {
-    "NEXT_PUBLIC_API_URL": "@api-url",
-    "NEXT_PUBLIC_ENVIRONMENT": "production"
+    "VITE_API_URL": "@api-url",
+    "VITE_ENVIRONMENT": "production"
   }
 }
 ```
@@ -252,7 +256,7 @@ aws apigateway create-deployment \
 
 ```bash
 cd frontend
-npx vercel --prod
+vp dlx vercel --prod
 ```
 
 ### 3. AWS Amplify (フロントエンド)
@@ -265,14 +269,15 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - npm install -g vite-plus
+        - vp install
     build:
       commands:
-        - npm run build
+        - vp build
   artifacts:
-    baseDirectory: .next
+    baseDirectory: dist
     files:
-      - '**/*'
+      - "**/*"
   cache:
     paths:
       - node_modules/**/*
@@ -291,35 +296,35 @@ name: Backend CI/CD
 on:
   push:
     branches: [main]
-    paths: ['backend/**']
+    paths: ["backend/**"]
   pull_request:
     branches: [main]
-    paths: ['backend/**']
+    paths: ["backend/**"]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
-          
+          python-version: "3.12"
+
       - name: Install uv
         run: pip install uv
-        
+
       - name: Install dependencies
         run: |
           cd backend
           uv sync
-          
+
       - name: Run tests
         run: |
           cd backend
           uv run pytest
-          
+
       - name: Run linting
         run: |
           cd backend
@@ -333,7 +338,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Deploy to AWS Lambda
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -352,48 +357,46 @@ name: Frontend CI/CD
 on:
   push:
     branches: [main]
-    paths: ['frontend/**']
+    paths: ["frontend/**"]
   pull_request:
     branches: [main]
-    paths: ['frontend/**']
+    paths: ["frontend/**"]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
           cache-dependency-path: frontend/package-lock.json
-          
+
+      - name: Install vp CLI
+        run: npm install -g vite-plus
+
       - name: Install dependencies
         run: |
           cd frontend
-          npm ci
-          
+          vp install
+
+      - name: Check (format, lint, types)
+        run: |
+          cd frontend
+          vp check
+
       - name: Run tests
         run: |
           cd frontend
-          npm run test
-          
-      - name: Run linting
-        run: |
-          cd frontend
-          npm run lint
-          
-      - name: Type check
-        run: |
-          cd frontend
-          npm run type-check
-          
+          vp test
+
       - name: Build
         run: |
           cd frontend
-          npm run build
+          vp build
 
   deploy:
     needs: test
@@ -401,7 +404,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v20
         with:
@@ -425,13 +428,13 @@ import watchtower
 def setup_logging():
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    
+
     # CloudWatch Logs ハンドラー
     handler = watchtower.CloudWatchLogsHandler(
         log_group='plant-monitor-backend',
         stream_name='application'
     )
-    
+
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
@@ -509,7 +512,7 @@ def add_security_middleware(app: FastAPI):
         allow_methods=["GET", "POST"],
         allow_headers=["*"],
     )
-    
+
     # Trusted Host設定
     app.add_middleware(
         TrustedHostMiddleware,
@@ -570,7 +573,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # 開発環境
+    allow_origins=["http://localhost:5173"],  # 開発環境
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -582,11 +585,11 @@ app.add_middleware(
 ```bash
 # 依存関係の再インストール
 cd frontend
-rm -rf node_modules package-lock.json
-npm install
+rm -rf node_modules
+vp install
 
-# キャッシュクリア
-npm run build -- --no-cache
+# ビルド
+vp build
 ```
 
 ### ログ確認
@@ -629,31 +632,24 @@ dynamodb = boto3.resource('dynamodb', config=config)
 ### フロントエンド最適化
 
 ```typescript
-// frontend/next.config.js
-const nextConfig = {
-  // 画像最適化
-  images: {
-    domains: ['your-api-domain.com'],
-    formats: ['image/webp', 'image/avif'],
+// frontend/vite.config.ts
+import { defineConfig } from "vite-plus";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    // チャンク分割
+    rolldownOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom", "react-router-dom"],
+          charts: ["recharts"],
+        },
+      },
+    },
   },
-  
-  // 圧縮
-  compress: true,
-  
-  // 静的最適化
-  trailingSlash: false,
-  
-  // バンドル分析
-  webpack: (config, { dev, isServer }) => {
-    if (!dev && !isServer) {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        '@': path.resolve(__dirname, 'src'),
-      };
-    }
-    return config;
-  },
-};
+});
 ```
 
 ## スケーリング
@@ -677,17 +673,17 @@ spec:
         app: plant-monitor-backend
     spec:
       containers:
-      - name: backend
-        image: plant-monitor-backend:latest
-        ports:
-        - containerPort: 8000
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
+        - name: backend
+          image: plant-monitor-backend:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ```
 
 ### オートスケーリング
@@ -706,10 +702,10 @@ spec:
   minReplicas: 2
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
 ```

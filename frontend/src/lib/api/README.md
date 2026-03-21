@@ -5,6 +5,7 @@
 現在のバックエンドは以下の構造になっています：
 
 ### DynamoDBデータ構造
+
 ```
 aggdata_table:
 - data_type (パーティションキー): "temperature" | "pH"
@@ -13,6 +14,7 @@ aggdata_table:
 ```
 
 ### 現在のバックエンドAPI
+
 - `GET /` - HTML形式でのグラフ表示のみ
 
 ## フロントエンド統合のための推奨バックエンド実装
@@ -20,6 +22,7 @@ aggdata_table:
 フロントエンドを完全に動作させるには、以下のJSON APIエンドポイントの実装が推奨されます：
 
 ### 1. データ取得API
+
 ```python
 @app.get("/api/v1/data")
 async def get_data(
@@ -30,7 +33,7 @@ async def get_data(
 ):
     """
     センサーデータを取得
-    
+
     Returns:
     [
         {
@@ -41,7 +44,7 @@ async def get_data(
     """
     # DynamoDBからデータを取得
     data = dynamodb_service.get_data(data_type, start_time, end_time)
-    
+
     # フロントエンド用に変換（device_id, locationは固定値）
     result = []
     for item in data:
@@ -51,11 +54,12 @@ async def get_data(
             "device_id": "sensor_001",  # 固定値
             "location": "温室A"         # 固定値
         })
-    
+
     return result
 ```
 
 ### 2. 最新データ取得API
+
 ```python
 @app.get("/api/v1/data/latest")
 async def get_latest_data(data_type: str):
@@ -64,11 +68,11 @@ async def get_latest_data(data_type: str):
     """
     # 最新の1件を取得
     data = dynamodb_service.get_data(
-        data_type, 
+        data_type,
         (datetime.now() - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S"),
         datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     )
-    
+
     if data:
         latest = max(data, key=lambda x: x["insert_date"])
         return {
@@ -77,11 +81,12 @@ async def get_latest_data(data_type: str):
             "device_id": "sensor_001",
             "location": "温室A"
         }
-    
+
     return None
 ```
 
 ### 3. データサマリーAPI
+
 ```python
 @app.get("/api/v1/data/summary")
 async def get_data_summary(
@@ -94,7 +99,7 @@ async def get_data_summary(
     データサマリーを取得
     """
     data = dynamodb_service.get_data(data_type, start_time, end_time)
-    
+
     if not data:
         return {
             "average": 0,
@@ -103,9 +108,9 @@ async def get_data_summary(
             "count": 0,
             "period": period
         }
-    
+
     values = [item["avg_value"] for item in data]
-    
+
     return {
         "average": sum(values) / len(values),
         "minimum": min(values),
@@ -116,6 +121,7 @@ async def get_data_summary(
 ```
 
 ### 4. 植物情報API
+
 ```python
 @app.get("/api/v1/plants")
 async def get_plants():
@@ -140,6 +146,7 @@ async def get_plants():
 ```
 
 ### 5. CORS設定
+
 ```python
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -161,11 +168,11 @@ app.add_middleware(
 
 DynamoDBの実際のデータ構造とフロントエンドが期待する構造の対応：
 
-| DynamoDB | フロントエンド | 説明 |
-|----------|---------------|------|
-| `insert_date` | `timestamp` | 日時データ |
-| `avg_value` | `value` | センサー値 |
-| (なし) | `device_id` | 固定値 "sensor_001" |
-| (なし) | `location` | 固定値 "温室A" |
+| DynamoDB      | フロントエンド | 説明                |
+| ------------- | -------------- | ------------------- |
+| `insert_date` | `timestamp`    | 日時データ          |
+| `avg_value`   | `value`        | センサー値          |
+| (なし)        | `device_id`    | 固定値 "sensor_001" |
+| (なし)        | `location`     | 固定値 "温室A"      |
 
 この構造により、既存のDynamoDBデータを変更することなく、フロントエンドとの統合が可能です。

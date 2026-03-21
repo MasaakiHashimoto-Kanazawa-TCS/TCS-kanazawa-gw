@@ -2,18 +2,18 @@
  * APIクライアント
  */
 
-import type { ApiResponse, RequestOptions } from '@/types';
-import { API_BASE_URL, API_TIMEOUT } from '@/lib/constants';
+import type { RequestOptions } from "@/types";
+import { API_BASE_URL, API_TIMEOUT } from "@/lib/constants";
 
 export class ApiError extends Error {
   constructor(
     public status: number,
     public code: string,
     message: string,
-    public details?: string
+    public details?: string,
   ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 }
 
@@ -22,7 +22,7 @@ export class ApiClient {
   private timeout: number;
 
   constructor(baseUrl: string = API_BASE_URL, timeout: number = API_TIMEOUT) {
-    this.baseUrl = baseUrl.replace(/\/$/, ''); // 末尾のスラッシュを削除
+    this.baseUrl = baseUrl.replace(/\/$/, ""); // 末尾のスラッシュを削除
     this.timeout = timeout;
   }
 
@@ -31,7 +31,7 @@ export class ApiClient {
    */
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
     const url = this.buildUrl(endpoint, params);
-    return this.request<T>(url, { method: 'GET' });
+    return this.request<T>(url, { method: "GET" });
   }
 
   /**
@@ -40,8 +40,8 @@ export class ApiClient {
   async post<T>(endpoint: string, data?: any): Promise<T> {
     const url = this.buildUrl(endpoint);
     return this.request<T>(url, {
-      method: 'POST',
-      body: data
+      method: "POST",
+      body: data,
     });
   }
 
@@ -51,8 +51,8 @@ export class ApiClient {
   async put<T>(endpoint: string, data?: any): Promise<T> {
     const url = this.buildUrl(endpoint);
     return this.request<T>(url, {
-      method: 'PUT',
-      body: data
+      method: "PUT",
+      body: data,
     });
   }
 
@@ -61,7 +61,7 @@ export class ApiClient {
    */
   async delete<T>(endpoint: string): Promise<T> {
     const url = this.buildUrl(endpoint);
-    return this.request<T>(url, { method: 'DELETE' });
+    return this.request<T>(url, { method: "DELETE" });
   }
 
   /**
@@ -73,13 +73,13 @@ export class ApiClient {
 
     try {
       const response = await fetch(url, {
-        method: options.method || 'GET',
+        method: options.method || "GET",
         headers: {
-          'Content-Type': 'application/json',
-          ...options.headers
+          "Content-Type": "application/json",
+          ...options.headers,
         },
         body: options.body ? JSON.stringify(options.body) : undefined,
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -89,22 +89,22 @@ export class ApiClient {
       }
 
       // レスポンスがJSONかどうかチェック
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
-        
+
         // 新しいAPIの場合、直接データを返す
-        if (Array.isArray(data) || typeof data === 'object') {
+        if (Array.isArray(data) || typeof data === "object") {
           return data as T;
         }
-        
+
         // 古いAPIレスポンス形式の場合
-        if (data.status === 'error') {
+        if (data.status === "error") {
           throw new ApiError(
             response.status,
-            data.error?.code || 'UNKNOWN_ERROR',
-            data.error?.message || 'Unknown error occurred',
-            data.error?.details
+            data.error?.code || "UNKNOWN_ERROR",
+            data.error?.message || "Unknown error occurred",
+            data.error?.details,
           );
         }
 
@@ -116,19 +116,19 @@ export class ApiClient {
       }
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if (error instanceof ApiError) {
         throw error;
       }
 
       if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          throw new ApiError(408, 'TIMEOUT', 'Request timeout');
+        if (error.name === "AbortError") {
+          throw new ApiError(408, "TIMEOUT", "Request timeout");
         }
-        throw new ApiError(0, 'NETWORK_ERROR', error.message);
+        throw new ApiError(0, "NETWORK_ERROR", error.message);
       }
 
-      throw new ApiError(0, 'UNKNOWN_ERROR', 'Unknown error occurred');
+      throw new ApiError(0, "UNKNOWN_ERROR", "Unknown error occurred");
     }
   }
 
@@ -137,10 +137,10 @@ export class ApiClient {
    */
   private async handleErrorResponse(response: Response): Promise<never> {
     let errorData: any;
-    
+
     try {
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
         errorData = await response.json();
       } else {
         errorData = { message: await response.text() };
@@ -152,8 +152,10 @@ export class ApiClient {
     throw new ApiError(
       response.status,
       errorData.error?.code || `HTTP_${response.status}`,
-      errorData.error?.message || errorData.message || `HTTP ${response.status} ${response.statusText}`,
-      errorData.error?.details
+      errorData.error?.message ||
+        errorData.message ||
+        `HTTP ${response.status} ${response.statusText}`,
+      errorData.error?.details,
     );
   }
 
@@ -161,8 +163,8 @@ export class ApiClient {
    * URLを構築
    */
   private buildUrl(endpoint: string, params?: Record<string, any>): string {
-    const url = `${this.baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
-    
+    const url = `${this.baseUrl}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+
     if (!params) return url;
 
     const searchParams = new URLSearchParams();

@@ -2,11 +2,11 @@
  * センサーデータ取得フック
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import type { SensorData, DataType, DataSummary } from '@/types';
-import { sensorService } from '@/lib/services';
-import { useApiData } from './useApiData';
-import { DATA_REFRESH_INTERVAL, REALTIME_UPDATE_INTERVAL } from '@/lib/constants';
+import { useState, useCallback, useEffect, useRef } from "react";
+import type { SensorData, DataType, DataSummary } from "@/types";
+import { sensorService } from "@/lib/services";
+import { useApiData } from "./useApiData";
+import { DATA_REFRESH_INTERVAL, REALTIME_UPDATE_INTERVAL } from "@/lib/constants";
 
 export interface UseSensorDataOptions {
   dataType: DataType;
@@ -31,8 +31,8 @@ export interface UseSensorDataResult {
  * センサーデータ取得フック
  */
 export function useSensorData(options: UseSensorDataOptions): UseSensorDataResult {
-  const { dataType, timeRange = '24h', autoRefresh = true, realtime = false } = options;
-  
+  const { dataType, timeRange = "24h", autoRefresh = true, realtime = false } = options;
+
   const [latest, setLatest] = useState<SensorData | null>(null);
   const [summary, setSummary] = useState<DataSummary | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
@@ -43,13 +43,10 @@ export function useSensorData(options: UseSensorDataOptions): UseSensorDataResul
     loading: historyLoading,
     error: historyError,
     refetch: refetchHistory,
-    isRefetching: isRefetchingHistory
-  } = useApiData(
-    () => sensorService.getDataByTimeRange(dataType, timeRange),
-    {
-      refetchInterval: autoRefresh ? DATA_REFRESH_INTERVAL : undefined
-    }
-  );
+    isRefetching: isRefetchingHistory,
+  } = useApiData(() => sensorService.getDataByTimeRange(dataType, timeRange), {
+    refetchInterval: autoRefresh ? DATA_REFRESH_INTERVAL : undefined,
+  });
 
   // 最新データの取得
   const {
@@ -57,18 +54,15 @@ export function useSensorData(options: UseSensorDataOptions): UseSensorDataResul
     loading: latestLoading,
     error: latestError,
     refetch: refetchLatest,
-    isRefetching: isRefetchingLatest
-  } = useApiData(
-    () => sensorService.getLatestData(dataType),
-    {
-      refetchInterval: autoRefresh ? REALTIME_UPDATE_INTERVAL : undefined,
-      onSuccess: (data) => {
-        if (data) {
-          setLatest(data);
-        }
+    isRefetching: isRefetchingLatest,
+  } = useApiData(() => sensorService.getLatestData(dataType), {
+    refetchInterval: autoRefresh ? REALTIME_UPDATE_INTERVAL : undefined,
+    onSuccess: (data) => {
+      if (data) {
+        setLatest(data);
       }
-    }
-  );
+    },
+  });
 
   // サマリーデータの取得
   const {
@@ -76,18 +70,15 @@ export function useSensorData(options: UseSensorDataOptions): UseSensorDataResul
     loading: summaryLoading,
     error: summaryError,
     refetch: refetchSummary,
-    isRefetching: isRefetchingSummary
-  } = useApiData(
-    () => sensorService.getSummary({ data_type: dataType, period: 'day' }),
-    {
-      refetchInterval: autoRefresh ? DATA_REFRESH_INTERVAL : undefined,
-      onSuccess: (data) => {
-        if (data) {
-          setSummary(data);
-        }
+    isRefetching: isRefetchingSummary,
+  } = useApiData(() => sensorService.getSummary({ data_type: dataType, period: "day" }), {
+    refetchInterval: autoRefresh ? DATA_REFRESH_INTERVAL : undefined,
+    onSuccess: (data) => {
+      if (data) {
+        setSummary(data);
       }
-    }
-  );
+    },
+  });
 
   // リアルタイム更新の購読
   const subscribe = useCallback((subscribeDataType: DataType) => {
@@ -97,12 +88,9 @@ export function useSensorData(options: UseSensorDataOptions): UseSensorDataResul
     }
 
     // 新しい購読を開始
-    unsubscribeRef.current = sensorService.subscribeToUpdates(
-      subscribeDataType,
-      (newData) => {
-        setLatest(newData);
-      }
-    );
+    unsubscribeRef.current = sensorService.subscribeToUpdates(subscribeDataType, (newData) => {
+      setLatest(newData);
+    });
   }, []);
 
   // 購読解除
@@ -115,11 +103,7 @@ export function useSensorData(options: UseSensorDataOptions): UseSensorDataResul
 
   // データ更新
   const refreshData = useCallback(async () => {
-    await Promise.all([
-      refetchHistory(),
-      refetchLatest(),
-      refetchSummary()
-    ]);
+    await Promise.all([refetchHistory(), refetchLatest(), refetchSummary()]);
   }, [refetchHistory, refetchLatest, refetchSummary]);
 
   // リアルタイム更新の設定
@@ -131,12 +115,9 @@ export function useSensorData(options: UseSensorDataOptions): UseSensorDataResul
       }
 
       // 新しい購読を開始
-      unsubscribeRef.current = sensorService.subscribeToUpdates(
-        dataType,
-        (newData) => {
-          setLatest(newData);
-        }
-      );
+      unsubscribeRef.current = sensorService.subscribeToUpdates(dataType, (newData) => {
+        setLatest(newData);
+      });
     }
 
     return () => {
@@ -161,15 +142,17 @@ export function useSensorData(options: UseSensorDataOptions): UseSensorDataResul
     refreshData,
     isRefetching,
     subscribe,
-    unsubscribe
+    unsubscribe,
   };
 }
 
 /**
  * 複数データタイプのセンサーデータ取得フック
  */
-export function useMultiSensorData(dataTypes: DataType[], timeRange: string = '24h') {
-  const [data, setData] = useState<Record<DataType, SensorData[]>>({} as Record<DataType, SensorData[]>);
+export function useMultiSensorData(dataTypes: DataType[], timeRange: string = "24h") {
+  const [data, setData] = useState<Record<DataType, SensorData[]>>(
+    {} as Record<DataType, SensorData[]>,
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -185,29 +168,29 @@ export function useMultiSensorData(dataTypes: DataType[], timeRange: string = '2
 
       const results = await Promise.all(promises);
       const newData = {} as Record<DataType, SensorData[]>;
-      
+
       results.forEach(({ dataType, data: sensorData }) => {
         newData[dataType] = sensorData;
       });
 
       setData(newData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'データの取得に失敗しました');
+      setError(err instanceof Error ? err.message : "データの取得に失敗しました");
     } finally {
       setLoading(false);
     }
-  }, [dataTypes.join(','), timeRange]);
+  }, [dataTypes.join(","), timeRange]);
 
   useEffect(() => {
     if (dataTypes.length > 0) {
-      fetchAllData();
+      void fetchAllData();
     }
-  }, [dataTypes.join(','), timeRange]);
+  }, [dataTypes.join(","), timeRange]);
 
   return {
     data,
     loading,
     error,
-    refetch: fetchAllData
+    refetch: fetchAllData,
   };
 }

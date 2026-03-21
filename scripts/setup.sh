@@ -73,7 +73,7 @@ setup_frontend() {
     cd frontend
     
     # 依存関係インストール
-    npm install
+    vp install
     print_success "フロントエンド依存関係インストール完了"
     
     # 環境変数ファイル作成

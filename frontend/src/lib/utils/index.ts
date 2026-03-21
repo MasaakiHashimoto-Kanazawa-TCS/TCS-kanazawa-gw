@@ -6,25 +6,25 @@
  * クラス名を結合する
  */
 export function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(" ");
 }
 
 /**
  * 日付をフォーマットする
  */
 export function formatDate(date: string | Date, options?: Intl.DateTimeFormatOptions): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
   const defaultOptions: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Asia/Tokyo'
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Tokyo",
   };
 
-  return dateObj.toLocaleDateString('ja-JP', { ...defaultOptions, ...options });
+  return dateObj.toLocaleDateString("ja-JP", { ...defaultOptions, ...options });
 }
 
 /**
@@ -53,9 +53,9 @@ export function formatPH(value: number): string {
  */
 export function formatValue(value: number, dataType: string): string {
   switch (dataType) {
-    case 'temperature':
+    case "temperature":
       return formatTemperature(value);
-    case 'pH':
+    case "pH":
       return formatPH(value);
     default:
       return formatNumber(value);
@@ -67,8 +67,8 @@ export function formatValue(value: number, dataType: string): string {
  */
 export function getDataTypeLabel(dataType: string): string {
   const labels: Record<string, string> = {
-    temperature: '温度',
-    pH: 'pH'
+    temperature: "温度",
+    pH: "pH",
   };
   return labels[dataType] || dataType;
 }
@@ -78,9 +78,9 @@ export function getDataTypeLabel(dataType: string): string {
  */
 export function getTimeRangeLabel(timeRange: string): string {
   const labels: Record<string, string> = {
-    '24h': '過去24時間',
-    '7d': '過去7日間',
-    '30d': '過去30日間'
+    "24h": "過去24時間",
+    "7d": "過去7日間",
+    "30d": "過去30日間",
   };
   return labels[timeRange] || timeRange;
 }
@@ -92,10 +92,10 @@ export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
-  if (typeof error === 'string') {
+  if (typeof error === "string") {
     return error;
   }
-  return '不明なエラーが発生しました';
+  return "不明なエラーが発生しました";
 }
 
 /**
@@ -103,10 +103,10 @@ export function getErrorMessage(error: unknown): string {
  */
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout;
-  
+
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
@@ -118,7 +118,7 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function isWithinThreshold(
   value: number,
-  threshold: { min: number; max: number } | undefined
+  threshold: { min: number; max: number } | undefined,
 ): boolean {
   if (!threshold) {
     return true; // 閾値が設定されていない場合は常に正常とみなす
@@ -131,12 +131,12 @@ export function isWithinThreshold(
  */
 export function getThresholdViolationType(
   value: number,
-  threshold: { min: number; max: number } | undefined
-): 'high' | 'low' | null {
+  threshold: { min: number; max: number } | undefined,
+): "high" | "low" | null {
   if (!threshold) {
     return null; // 閾値が設定されていない場合は違反なし
   }
-  if (value > threshold.max) return 'high';
-  if (value < threshold.min) return 'low';
+  if (value > threshold.max) return "high";
+  if (value < threshold.min) return "low";
   return null;
 }

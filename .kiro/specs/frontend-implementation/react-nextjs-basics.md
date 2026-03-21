@@ -7,6 +7,7 @@
 コンポーネントは、UIの一部を表現する再利用可能なコードブロックです。
 
 #### 関数コンポーネント（推奨）
+
 ```typescript
 // シンプルなコンポーネント
 function Welcome() {
@@ -77,7 +78,7 @@ function TemperatureDisplay() {
   // ボタンクリック時の処理
   const updateTemperature = async () => {
     setIsLoading(true);
-    
+
     try {
       // APIからデータを取得（例）
       const response = await fetch('/api/temperature');
@@ -498,13 +499,13 @@ export interface Plant {
 export interface SensorReading {
   timestamp: string;
   value: number;
-  sensorType: 'temperature' | 'humidity' | 'soilMoisture' | 'light';
+  sensorType: "temperature" | "humidity" | "soilMoisture" | "light";
 }
 
 export interface Alert {
   id: string;
   plantId: string;
-  type: 'warning' | 'error';
+  type: "warning" | "error";
   message: string;
   timestamp: string;
   resolved: boolean;
@@ -532,7 +533,7 @@ export default function PlantDashboard({
   return (
     <div>
       <h1>植物ダッシュボード</h1>
-      
+
       {/* アラート表示 */}
       {alerts.length > 0 && (
         <div className="alerts">

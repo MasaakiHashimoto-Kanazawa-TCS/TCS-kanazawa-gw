@@ -2,10 +2,10 @@
  * 植物データサービス
  */
 
-import type { Plant, CreatePlantRequest, UpdatePlantRequest } from '@/types';
-import { apiClient } from '@/lib/api/client';
-import { API_ENDPOINTS, buildEndpoint } from '@/lib/api/endpoints';
-import { IS_DEVELOPMENT } from '@/lib/constants';
+import type { Plant, CreatePlantRequest, UpdatePlantRequest } from "@/types";
+import { apiClient } from "@/lib/api/client";
+import { API_ENDPOINTS, buildEndpoint } from "@/lib/api/endpoints";
+import { IS_DEVELOPMENT } from "@/lib/constants";
 
 export class PlantService {
   /**
@@ -13,29 +13,31 @@ export class PlantService {
    */
   async getPlants(): Promise<Plant[]> {
     try {
-      console.log('PlantService.getPlants: Starting, IS_DEVELOPMENT:', IS_DEVELOPMENT);
+      console.log("PlantService.getPlants: Starting, IS_DEVELOPMENT:", IS_DEVELOPMENT);
 
       // バックエンドAPIから植物データを取得
-      console.log('PlantService.getPlants: Calling backend API');
+      console.log("PlantService.getPlants: Calling backend API");
       const response = await apiClient.get<Plant[]>(API_ENDPOINTS.PLANTS);
-      console.log('PlantService.getPlants: Backend API response:', response);
+      console.log("PlantService.getPlants: Backend API response:", response);
       return response;
     } catch (error) {
-      console.warn('Failed to fetch plants from backend API, using fallback data:', error);
+      console.warn("Failed to fetch plants from backend API, using fallback data:", error);
       // フォールバック用のデフォルトデータ
-      return [{
-        id: 'plant-001',
-        name: 'トマト',
-        species: 'Solanum lycopersicum',
-        location: '金沢支店',
-        device_id: 'sensor_001',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        thresholds: {
-          temperature: { min: 18, max: 28 },
-          pH: { min: 6.0, max: 7.5 }
-        }
-      }];
+      return [
+        {
+          id: "plant-001",
+          name: "トマト",
+          species: "Solanum lycopersicum",
+          location: "金沢支店",
+          device_id: "sensor_001",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          thresholds: {
+            temperature: { min: 18, max: 28 },
+            pH: { min: 6.0, max: 7.5 },
+          },
+        },
+      ];
     }
   }
 
@@ -44,28 +46,28 @@ export class PlantService {
    */
   async getPlant(id: string): Promise<Plant> {
     try {
-      console.log('PlantService.getPlant: Starting for ID:', id);
+      console.log("PlantService.getPlant: Starting for ID:", id);
 
       // バックエンドAPIから植物データを取得
-      console.log('PlantService.getPlant: Calling backend API for ID:', id);
-      const response = await apiClient.get<Plant>(buildEndpoint(API_ENDPOINTS.PLANT_DETAIL, { id }));
-      console.log('PlantService.getPlant: Backend API response:', response);
+      console.log("PlantService.getPlant: Calling backend API for ID:", id);
+      const response = await apiClient.get<Plant>(buildEndpoint.plant(id));
+      console.log("PlantService.getPlant: Backend API response:", response);
       return response;
     } catch (error) {
-      console.warn('Failed to fetch plant from backend API, using fallback data:', error);
+      console.warn("Failed to fetch plant from backend API, using fallback data:", error);
       // フォールバック用のデフォルトデータ
       return {
-        id: 'plant-001',
-        name: 'トマト',
-        species: 'Solanum lycopersicum',
-        location: '金沢支店',
-        device_id: 'sensor_001',
+        id: "plant-001",
+        name: "トマト",
+        species: "Solanum lycopersicum",
+        location: "金沢支店",
+        device_id: "sensor_001",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         thresholds: {
           temperature: { min: 18, max: 28 },
-          pH: { min: 6.0, max: 7.5 }
-        }
+          pH: { min: 6.0, max: 7.5 },
+        },
       };
     }
   }
@@ -81,7 +83,7 @@ export class PlantService {
           ...plant,
           id: `plant-${Date.now()}`,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         };
         return newPlant;
       }
@@ -90,7 +92,7 @@ export class PlantService {
       const response = await apiClient.post<Plant>(API_ENDPOINTS.PLANTS, plant);
       return response;
     } catch (error) {
-      console.error('Failed to add plant:', error);
+      console.error("Failed to add plant:", error);
       throw error;
     }
   }
@@ -109,11 +111,11 @@ export class PlantService {
           // thresholdsが部分的に更新される場合は、既存の値とマージ
           thresholds: updates.thresholds
             ? {
-              temperature: updates.thresholds.temperature || currentPlant.thresholds.temperature,
-              pH: updates.thresholds.pH || currentPlant.thresholds.pH,
-            }
+                temperature: updates.thresholds.temperature || currentPlant.thresholds.temperature,
+                pH: updates.thresholds.pH || currentPlant.thresholds.pH,
+              }
             : currentPlant.thresholds,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         };
         return updatedPlant;
       }
@@ -122,7 +124,7 @@ export class PlantService {
       const response = await apiClient.put<Plant>(buildEndpoint.plant(id), updates);
       return response;
     } catch (error) {
-      console.error('Failed to update plant:', error);
+      console.error("Failed to update plant:", error);
       throw error;
     }
   }
@@ -141,7 +143,7 @@ export class PlantService {
       // 将来のJSON API実装
       await apiClient.delete<void>(buildEndpoint.plant(id));
     } catch (error) {
-      console.error('Failed to delete plant:', error);
+      console.error("Failed to delete plant:", error);
       throw error;
     }
   }
@@ -149,22 +151,25 @@ export class PlantService {
   /**
    * 植物の健康状態を評価
    */
-  evaluateHealthStatus(plant: Plant, latestData: { temperature?: number; pH?: number }): {
-    status: 'healthy' | 'warning' | 'critical';
+  evaluateHealthStatus(
+    plant: Plant,
+    latestData: { temperature?: number; pH?: number },
+  ): {
+    status: "healthy" | "warning" | "critical";
     issues: string[];
   } {
     const issues: string[] = [];
-    let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+    let status: "healthy" | "warning" | "critical" = "healthy";
 
     // 温度チェック
     if (latestData.temperature !== undefined) {
       const tempThreshold = plant.thresholds.temperature;
       if (latestData.temperature < tempThreshold.min) {
-        issues.push('温度が低すぎます');
-        status = 'warning';
+        issues.push("温度が低すぎます");
+        status = "warning";
       } else if (latestData.temperature > tempThreshold.max) {
-        issues.push('温度が高すぎます');
-        status = 'critical';
+        issues.push("温度が高すぎます");
+        status = "critical";
       }
     }
 
@@ -172,11 +177,11 @@ export class PlantService {
     if (latestData.pH !== undefined) {
       const phThreshold = plant.thresholds.pH;
       if (latestData.pH < phThreshold.min) {
-        issues.push('pHが低すぎます（酸性）');
-        status = status === 'critical' ? 'critical' : 'warning';
+        issues.push("pHが低すぎます（酸性）");
+        status = status === "critical" ? "critical" : "warning";
       } else if (latestData.pH > phThreshold.max) {
-        issues.push('pHが高すぎます（アルカリ性）');
-        status = status === 'critical' ? 'critical' : 'warning';
+        issues.push("pHが高すぎます（アルカリ性）");
+        status = status === "critical" ? "critical" : "warning";
       }
     }
 

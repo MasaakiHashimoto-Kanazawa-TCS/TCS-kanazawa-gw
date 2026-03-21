@@ -2,13 +2,11 @@
  * アラートカードコンポーネント
  */
 
-'use client';
-
-import type { Alert } from '@/types';
-import { Card, CardContent, Button, Badge } from '@/components/ui';
-import { ALERT_CONFIGS } from '@/types';
-import { formatDate } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import type { Alert } from "@/types";
+import { Card, CardContent, Button, Badge } from "@/components/ui";
+import { ALERT_CONFIGS } from "@/types";
+import { formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export interface AlertCardProps {
   alert: Alert;
@@ -23,56 +21,58 @@ export function AlertCard({
   onAcknowledge,
   onDismiss,
   showActions = true,
-  className
+  className,
 }: AlertCardProps) {
   const config = ALERT_CONFIGS[alert.type];
 
-  const getSeverityVariant = (severity: Alert['severity']) => {
+  const getSeverityVariant = (severity: Alert["severity"]) => {
     switch (severity) {
-      case 'high':
-        return 'danger';
-      case 'medium':
-        return 'warning';
-      case 'low':
-        return 'default';
+      case "high":
+        return "danger";
+      case "medium":
+        return "warning";
+      case "low":
+        return "default";
       default:
-        return 'default';
+        return "default";
     }
   };
 
-  const getSeverityLabel = (severity: Alert['severity']) => {
+  const getSeverityLabel = (severity: Alert["severity"]) => {
     switch (severity) {
-      case 'high':
-        return '緊急';
-      case 'medium':
-        return '警告';
-      case 'low':
-        return '注意';
+      case "high":
+        return "緊急";
+      case "medium":
+        return "警告";
+      case "low":
+        return "注意";
       default:
-        return '不明';
+        return "不明";
     }
   };
 
-  const getBorderColor = (severity: Alert['severity']) => {
+  const getBorderColor = (severity: Alert["severity"]) => {
     switch (severity) {
-      case 'high':
-        return 'border-red-200 dark:border-red-800';
-      case 'medium':
-        return 'border-orange-200 dark:border-orange-800';
-      case 'low':
-        return 'border-yellow-200 dark:border-yellow-800';
+      case "high":
+        return "border-red-200 dark:border-red-800";
+      case "medium":
+        return "border-orange-200 dark:border-orange-800";
+      case "low":
+        return "border-yellow-200 dark:border-yellow-800";
       default:
-        return 'border-gray-200 dark:border-gray-700';
+        return "border-gray-200 dark:border-gray-700";
     }
   };
 
   return (
-    <Card className={cn(
-      'transition-all duration-200',
-      getBorderColor(alert.severity),
-      alert.acknowledged && 'opacity-75',
-      className
-    )}>
+    <Card
+      className={cn(
+        "transition-all duration-200",
+        getBorderColor(alert.severity),
+        alert.acknowledged && "opacity-75",
+        className,
+      )}
+    >
       <CardContent className="p-4">
         <div className="flex items-start space-x-3">
           {/* アイコン */}
@@ -85,10 +85,7 @@ export function AlertCard({
             {/* ヘッダー */}
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center space-x-2">
-                <Badge
-                  variant={getSeverityVariant(alert.severity)}
-                  size="sm"
-                >
+                <Badge variant={getSeverityVariant(alert.severity)} size="sm">
                   {getSeverityLabel(alert.severity)}
                 </Badge>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -100,22 +97,20 @@ export function AlertCard({
                   </Badge>
                 )}
               </div>
-              
+
               {/* タイムスタンプ */}
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {formatDate(alert.timestamp, { 
-                  month: 'short', 
-                  day: 'numeric', 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
+                {formatDate(alert.timestamp, {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </div>
             </div>
 
             {/* メッセージ */}
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-              {alert.message}
-            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">{alert.message}</p>
 
             {/* 推奨アクション */}
             {alert.recommendedAction && (
@@ -133,20 +128,12 @@ export function AlertCard({
             {showActions && (
               <div className="flex items-center space-x-2">
                 {!alert.acknowledged && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={onAcknowledge}
-                  >
+                  <Button variant="primary" size="sm" onClick={onAcknowledge}>
                     確認する
                   </Button>
                 )}
                 {onDismiss && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onDismiss}
-                  >
+                  <Button variant="outline" size="sm" onClick={onDismiss}>
                     解除する
                   </Button>
                 )}
@@ -175,39 +162,37 @@ export function AlertList({
   onAcknowledge,
   onDismiss,
   showResolved = false,
-  className
+  className,
 }: AlertListProps) {
   // フィルタリング
-  const filteredAlerts = alerts.filter(alert => 
-    showResolved || !alert.resolved
-  );
+  const filteredAlerts = alerts.filter((alert) => showResolved || !alert.resolved);
 
   // 重要度とタイムスタンプでソート
   const sortedAlerts = [...filteredAlerts].sort((a, b) => {
     // 重要度でソート（high > medium > low）
     const severityOrder = { high: 3, medium: 2, low: 1 };
     const severityDiff = severityOrder[b.severity] - severityOrder[a.severity];
-    
+
     if (severityDiff !== 0) {
       return severityDiff;
     }
-    
+
     // タイムスタンプでソート（新しい順）
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
   });
 
   if (sortedAlerts.length === 0) {
     return (
-      <div className={cn('text-center py-8', className)}>
+      <div className={cn("text-center py-8", className)}>
         <div className="text-gray-500 dark:text-gray-400">
-          {showResolved ? 'アラートはありません' : 'アクティブなアラートはありません'}
+          {showResolved ? "アラートはありません" : "アクティブなアラートはありません"}
         </div>
       </div>
     );
   }
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {sortedAlerts.map((alert) => (
         <AlertCard
           key={alert.id}
@@ -229,13 +214,13 @@ export interface AlertSummaryProps {
 }
 
 export function AlertSummary({ alerts, className }: AlertSummaryProps) {
-  const activeAlerts = alerts.filter(alert => !alert.resolved);
+  const activeAlerts = alerts.filter((alert) => !alert.resolved);
   const stats = {
     total: activeAlerts.length,
-    high: activeAlerts.filter(alert => alert.severity === 'high').length,
-    medium: activeAlerts.filter(alert => alert.severity === 'medium').length,
-    low: activeAlerts.filter(alert => alert.severity === 'low').length,
-    unacknowledged: activeAlerts.filter(alert => !alert.acknowledged).length
+    high: activeAlerts.filter((alert) => alert.severity === "high").length,
+    medium: activeAlerts.filter((alert) => alert.severity === "medium").length,
+    low: activeAlerts.filter((alert) => alert.severity === "low").length,
+    unacknowledged: activeAlerts.filter((alert) => !alert.acknowledged).length,
   };
 
   if (stats.total === 0) {
@@ -244,12 +229,15 @@ export function AlertSummary({ alerts, className }: AlertSummaryProps) {
         <CardContent className="p-4 text-center">
           <div className="text-green-600 dark:text-green-400 mb-2">
             <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">
-            すべて正常です
-          </p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">すべて正常です</p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             アクティブなアラートはありません
           </p>
@@ -261,27 +249,19 @@ export function AlertSummary({ alerts, className }: AlertSummaryProps) {
   return (
     <Card className={className}>
       <CardContent className="p-4">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-          アラートサマリー
-        </h3>
-        
+        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">アラートサマリー</h3>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {stats.total}
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              アクティブ
-            </div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">アクティブ</div>
           </div>
-          
+
           <div className="text-center">
             <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
               {stats.unacknowledged}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              未確認
-            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">未確認</div>
           </div>
         </div>
 
@@ -289,19 +269,25 @@ export function AlertSummary({ alerts, className }: AlertSummaryProps) {
           {stats.high > 0 && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-red-600 dark:text-red-400">緊急</span>
-              <Badge variant="danger" size="sm">{stats.high}</Badge>
+              <Badge variant="danger" size="sm">
+                {stats.high}
+              </Badge>
             </div>
           )}
           {stats.medium > 0 && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-orange-600 dark:text-orange-400">警告</span>
-              <Badge variant="warning" size="sm">{stats.medium}</Badge>
+              <Badge variant="warning" size="sm">
+                {stats.medium}
+              </Badge>
             </div>
           )}
           {stats.low > 0 && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-yellow-600 dark:text-yellow-400">注意</span>
-              <Badge variant="default" size="sm">{stats.low}</Badge>
+              <Badge variant="default" size="sm">
+                {stats.low}
+              </Badge>
             </div>
           )}
         </div>

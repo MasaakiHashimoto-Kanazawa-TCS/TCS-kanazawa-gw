@@ -2,12 +2,10 @@
  * メトリクスグリッドコンポーネント
  */
 
-'use client';
-
-import type { ThresholdConfig } from '@/types';
-import { Card, CardContent, Badge } from '@/components/ui';
-import { formatValue, isWithinThreshold } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import type { ThresholdConfig } from "@/types";
+import { Card, CardContent, Badge } from "@/components/ui";
+import { formatValue, isWithinThreshold } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export interface MetricsGridProps {
   metrics: {
@@ -31,58 +29,78 @@ interface MetricCardProps {
   unit: string;
   icon: string;
   threshold: { min: number; max: number } | undefined;
-  trend?: 'up' | 'down' | 'stable';
+  trend?: "up" | "down" | "stable";
   className?: string;
 }
 
-function MetricCard({
-  title,
-  value,
-  unit,
-  icon,
-  threshold,
-  trend,
-  className
-}: MetricCardProps) {
+function MetricCard({ title, value, unit, icon, threshold, trend, className }: MetricCardProps) {
   const isHealthy = value !== undefined && threshold ? isWithinThreshold(value, threshold) : null;
 
-  const statusColor = isHealthy === null
-    ? 'text-gray-400'
-    : isHealthy
-      ? 'text-green-600 dark:text-green-400'
-      : 'text-red-600 dark:text-red-400';
+  const statusColor =
+    isHealthy === null
+      ? "text-gray-400"
+      : isHealthy
+        ? "text-green-600 dark:text-green-400"
+        : "text-red-600 dark:text-red-400";
 
-  const bgColor = isHealthy === null
-    ? 'bg-gray-50 dark:bg-gray-700'
-    : isHealthy
-      ? 'bg-green-50 dark:bg-green-900/20'
-      : 'bg-red-50 dark:bg-red-900/20';
+  const bgColor =
+    isHealthy === null
+      ? "bg-gray-50 dark:bg-gray-700"
+      : isHealthy
+        ? "bg-green-50 dark:bg-green-900/20"
+        : "bg-red-50 dark:bg-red-900/20";
 
-  const borderColor = isHealthy === null
-    ? 'border-gray-200 dark:border-gray-600'
-    : isHealthy
-      ? 'border-green-200 dark:border-green-800'
-      : 'border-red-200 dark:border-red-800';
+  const borderColor =
+    isHealthy === null
+      ? "border-gray-200 dark:border-gray-600"
+      : isHealthy
+        ? "border-green-200 dark:border-green-800"
+        : "border-red-200 dark:border-red-800";
 
   const getTrendIcon = () => {
     if (!trend) return null;
 
     switch (trend) {
-      case 'up':
+      case "up":
         return (
-          <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17l9.2-9.2M17 17V7H7" />
+          <svg
+            className="w-4 h-4 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 17l9.2-9.2M17 17V7H7"
+            />
           </svg>
         );
-      case 'down':
+      case "down":
         return (
-          <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 7l-9.2 9.2M7 7v10h10" />
+          <svg
+            className="w-4 h-4 text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 7l-9.2 9.2M7 7v10h10"
+            />
           </svg>
         );
-      case 'stable':
+      case "stable":
         return (
-          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4 text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
           </svg>
         );
@@ -92,42 +110,40 @@ function MetricCard({
   };
 
   return (
-    <Card className={cn(bgColor, borderColor, 'border', className)}>
+    <Card className={cn(bgColor, borderColor, "border", className)}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <span className="text-xl">{icon}</span>
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {title}
-            </h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">{title}</h3>
           </div>
-          {trend && (
-            <div className="flex items-center space-x-1">
-              {getTrendIcon()}
-            </div>
-          )}
+          {trend && <div className="flex items-center space-x-1">{getTrendIcon()}</div>}
         </div>
 
         <div className="space-y-2">
           {/* 現在の値 */}
           <div className="flex items-baseline justify-between">
-            <span className={cn('text-2xl font-bold', statusColor)}>
-              {value !== undefined ? formatValue(value, title.toLowerCase()) : '--'}
+            <span className={cn("text-2xl font-bold", statusColor)}>
+              {value !== undefined ? formatValue(value, title.toLowerCase()) : "--"}
             </span>
             <Badge
-              variant={isHealthy === null ? 'default' : isHealthy ? 'success' : 'danger'}
+              variant={isHealthy === null ? "default" : isHealthy ? "success" : "danger"}
               size="sm"
             >
-              {isHealthy === null ? '不明' : isHealthy ? '正常' : '異常'}
+              {isHealthy === null ? "不明" : isHealthy ? "正常" : "異常"}
             </Badge>
           </div>
 
           {/* 閾値範囲 */}
           <div className="text-xs text-gray-500 dark:text-gray-400">
             {threshold ? (
-              <>正常範囲: {threshold.min}{unit} - {threshold.max}{unit}</>
+              <>
+                正常範囲: {threshold.min}
+                {unit} - {threshold.max}
+                {unit}
+              </>
             ) : (
-              '閾値未設定'
+              "閾値未設定"
             )}
           </div>
 
@@ -136,13 +152,14 @@ function MetricCard({
             <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
               <div
                 className={cn(
-                  'h-2 rounded-full transition-all duration-300',
-                  isHealthy ? 'bg-green-500' : 'bg-red-500'
+                  "h-2 rounded-full transition-all duration-300",
+                  isHealthy ? "bg-green-500" : "bg-red-500",
                 )}
                 style={{
-                  width: `${Math.min(100, Math.max(0,
-                    ((value - threshold.min) / (threshold.max - threshold.min)) * 100
-                  ))}%`
+                  width: `${Math.min(
+                    100,
+                    Math.max(0, ((value - threshold.min) / (threshold.max - threshold.min)) * 100),
+                  )}%`,
                 }}
               />
             </div>
@@ -158,10 +175,10 @@ export function MetricsGrid({
   thresholds,
   className,
   showTrends = false,
-  previousMetrics
+  previousMetrics,
 }: MetricsGridProps) {
   // トレンドの計算
-  const getTrend = (current?: number, previous?: number): 'up' | 'down' | 'stable' | undefined => {
+  const getTrend = (current?: number, previous?: number): "up" | "down" | "stable" | undefined => {
     if (!showTrends || current === undefined || previous === undefined) {
       return undefined;
     }
@@ -169,29 +186,29 @@ export function MetricsGrid({
     const diff = current - previous;
     const threshold = 0.1; // 変化の閾値
 
-    if (Math.abs(diff) < threshold) return 'stable';
-    return diff > 0 ? 'up' : 'down';
+    if (Math.abs(diff) < threshold) return "stable";
+    return diff > 0 ? "up" : "down";
   };
 
   const metricConfigs = [
     {
-      key: 'temperature',
-      title: '温度',
-      unit: '°C',
-      icon: '🌡️',
-      threshold: thresholds?.temperature
+      key: "temperature",
+      title: "温度",
+      unit: "°C",
+      icon: "🌡️",
+      threshold: thresholds?.temperature,
     },
     {
-      key: 'pH',
-      title: 'pH',
-      unit: '',
-      icon: '⚗️',
-      threshold: thresholds?.pH
-    }
+      key: "pH",
+      title: "pH",
+      unit: "",
+      icon: "⚗️",
+      threshold: thresholds?.pH,
+    },
   ];
 
   return (
-    <div className={cn('grid grid-cols-1 md:grid-cols-2 gap-4', className)}>
+    <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-4", className)}>
       {metricConfigs.map((config) => (
         <MetricCard
           key={config.key}
@@ -221,13 +238,14 @@ export interface SummaryMetricsProps {
 
 export function SummaryMetrics({ data, thresholds, className }: SummaryMetricsProps) {
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {Object.entries(data).map(([key, values]) => {
         if (!values) return null;
 
-        const config = key === 'temperature'
-          ? { title: '温度', unit: '°C', icon: '🌡️', threshold: thresholds.temperature }
-          : { title: 'pH', unit: '', icon: '⚗️', threshold: thresholds.pH };
+        const config =
+          key === "temperature"
+            ? { title: "温度", unit: "°C", icon: "🌡️", threshold: thresholds.temperature }
+            : { title: "pH", unit: "", icon: "⚗️", threshold: thresholds.pH };
 
         return (
           <Card key={key}>
@@ -242,27 +260,19 @@ export function SummaryMetrics({ data, thresholds, className }: SummaryMetricsPr
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <div className="text-gray-500 dark:text-gray-400">現在</div>
-                  <div className="font-bold text-lg">
-                    {formatValue(values.current, key)}
-                  </div>
+                  <div className="font-bold text-lg">{formatValue(values.current, key)}</div>
                 </div>
                 <div>
                   <div className="text-gray-500 dark:text-gray-400">平均</div>
-                  <div className="font-medium">
-                    {formatValue(values.avg, key)}
-                  </div>
+                  <div className="font-medium">{formatValue(values.avg, key)}</div>
                 </div>
                 <div>
                   <div className="text-gray-500 dark:text-gray-400">最小</div>
-                  <div className="font-medium">
-                    {formatValue(values.min, key)}
-                  </div>
+                  <div className="font-medium">{formatValue(values.min, key)}</div>
                 </div>
                 <div>
                   <div className="text-gray-500 dark:text-gray-400">最大</div>
-                  <div className="font-medium">
-                    {formatValue(values.max, key)}
-                  </div>
+                  <div className="font-medium">{formatValue(values.max, key)}</div>
                 </div>
               </div>
             </CardContent>

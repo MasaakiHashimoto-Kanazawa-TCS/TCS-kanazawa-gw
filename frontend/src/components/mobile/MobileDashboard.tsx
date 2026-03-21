@@ -2,64 +2,56 @@
  * モバイル用ダッシュボードコンポーネント
  */
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import type { Plant, SensorData } from '@/types';
-import { usePlantData, useSensorData, useAlerts } from '@/hooks';
-import { MobileCard, MobileGrid } from './MobileLayout';
-import { CompactAlertBanner } from '@/components/alerts';
-import { Button, Badge, LoadingSpinner, ErrorMessage } from '@/components/ui';
-import { formatValue, formatDate, isWithinThreshold } from '@/lib/utils';
-import { DATA_TYPE_OPTIONS } from '@/lib/constants';
-import { cn } from '@/lib/utils';
+import { useState } from "react";
+import { usePlantData, useSensorData, useAlerts } from "@/hooks";
+import { MobileCard, MobileGrid } from "./MobileLayout";
+import { CompactAlertBanner } from "@/components/alerts";
+import { Button, Badge, LoadingSpinner } from "@/components/ui";
+import { formatValue, formatDate, isWithinThreshold } from "@/lib/utils";
+import { DATA_TYPE_OPTIONS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 export interface MobileDashboardProps {
   className?: string;
 }
 
 export function MobileDashboard({ className }: MobileDashboardProps) {
-  const [selectedDataType, setSelectedDataType] = useState<'temperature' | 'pH'>('temperature');
+  const [selectedDataType, setSelectedDataType] = useState<"temperature" | "pH">("temperature");
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // データ取得
   const { selectedPlant, loading: plantLoading } = usePlantData();
-  
+
   const {
     latest: latestTemperature,
     loading: tempLoading,
-    refreshData: refreshTemperature
+    refreshData: refreshTemperature,
   } = useSensorData({
-    dataType: 'temperature',
+    dataType: "temperature",
     autoRefresh: autoRefresh,
-    realtime: autoRefresh
+    realtime: autoRefresh,
   });
 
   const {
     latest: latestPH,
     loading: phLoading,
-    refreshData: refreshPH
+    refreshData: refreshPH,
   } = useSensorData({
-    dataType: 'pH',
+    dataType: "pH",
     autoRefresh: autoRefresh,
-    realtime: autoRefresh
+    realtime: autoRefresh,
   });
 
   const { activeAlerts, acknowledgeAlert, dismissAlert } = useAlerts({
     plantId: selectedPlant?.id,
     thresholds: selectedPlant?.thresholds,
-    autoGenerate: true
+    autoGenerate: true,
   });
 
   // 全データの更新
   const handleRefreshAll = async () => {
-    await Promise.all([
-      refreshTemperature(),
-      refreshPH()
-    ]);
+    await Promise.all([refreshTemperature(), refreshPH()]);
   };
-
-
 
   if (plantLoading || !selectedPlant) {
     return (
@@ -70,7 +62,7 @@ export function MobileDashboard({ className }: MobileDashboardProps) {
   }
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {/* アラート */}
       {activeAlerts.length > 0 && (
         <CompactAlertBanner
@@ -119,7 +111,7 @@ export function MobileDashboard({ className }: MobileDashboardProps) {
             {DATA_TYPE_OPTIONS.map((option) => (
               <Button
                 key={option.value}
-                variant={selectedDataType === option.value ? 'primary' : 'outline'}
+                variant={selectedDataType === option.value ? "primary" : "outline"}
                 size="sm"
                 onClick={() => setSelectedDataType(option.value)}
                 className="flex-1"
@@ -132,7 +124,7 @@ export function MobileDashboard({ className }: MobileDashboardProps) {
               </Button>
             ))}
           </div>
-          
+
           {/* 自動更新チェックボックス */}
           <div className="flex items-center justify-between">
             <label className="flex items-center space-x-2 cursor-pointer">
@@ -142,9 +134,7 @@ export function MobileDashboard({ className }: MobileDashboardProps) {
                 onChange={(e) => setAutoRefresh(e.target.checked)}
                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                自動更新
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">自動更新</span>
               {autoRefresh && (
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -152,7 +142,7 @@ export function MobileDashboard({ className }: MobileDashboardProps) {
                 </div>
               )}
             </label>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -171,23 +161,33 @@ export function MobileDashboard({ className }: MobileDashboardProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.location.href = '/history'}
+            onClick={() => (window.location.href = "/history")}
             className="flex flex-col items-center py-4 h-auto"
           >
             <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
             </svg>
             <span className="text-xs">履歴表示</span>
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.location.href = '/plant'}
+            onClick={() => (window.location.href = "/plant")}
             className="flex flex-col items-center py-4 h-auto"
           >
             <svg className="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span className="text-xs">詳細情報</span>
           </Button>
@@ -204,35 +204,37 @@ export function MobileDashboard({ className }: MobileDashboardProps) {
               <span className="text-sm font-medium text-green-600">正常</span>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">温度センサー</span>
             <div className="flex items-center space-x-2">
-              <div className={cn(
-                'w-2 h-2 rounded-full',
-                latestTemperature ? 'bg-green-500' : 'bg-red-500'
-              )}></div>
-              <span className={cn(
-                'text-sm font-medium',
-                latestTemperature ? 'text-green-600' : 'text-red-600'
-              )}>
-                {latestTemperature ? '正常' : 'エラー'}
+              <div
+                className={cn(
+                  "w-2 h-2 rounded-full",
+                  latestTemperature ? "bg-green-500" : "bg-red-500",
+                )}
+              ></div>
+              <span
+                className={cn(
+                  "text-sm font-medium",
+                  latestTemperature ? "text-green-600" : "text-red-600",
+                )}
+              >
+                {latestTemperature ? "正常" : "エラー"}
               </span>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">pHセンサー</span>
             <div className="flex items-center space-x-2">
-              <div className={cn(
-                'w-2 h-2 rounded-full',
-                latestPH ? 'bg-green-500' : 'bg-red-500'
-              )}></div>
-              <span className={cn(
-                'text-sm font-medium',
-                latestPH ? 'text-green-600' : 'text-red-600'
-              )}>
-                {latestPH ? '正常' : 'エラー'}
+              <div
+                className={cn("w-2 h-2 rounded-full", latestPH ? "bg-green-500" : "bg-red-500")}
+              ></div>
+              <span
+                className={cn("text-sm font-medium", latestPH ? "text-green-600" : "text-red-600")}
+              >
+                {latestPH ? "正常" : "エラー"}
               </span>
             </div>
           </div>
@@ -262,50 +264,54 @@ function MobileMetricCard({
   unit,
   threshold,
   loading,
-  timestamp
+  timestamp,
 }: MobileMetricCardProps) {
   const isHealthy = value !== undefined ? isWithinThreshold(value, threshold) : null;
-  
+
   return (
-    <div className={cn(
-      'p-3 rounded-lg border',
-      isHealthy === null
-        ? 'bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600'
-        : isHealthy
-          ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-          : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
-    )}>
+    <div
+      className={cn(
+        "p-3 rounded-lg border",
+        isHealthy === null
+          ? "bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600"
+          : isHealthy
+            ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
+            : "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800",
+      )}
+    >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
           <span className="text-lg">{icon}</span>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {title}
-          </span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{title}</span>
         </div>
         {loading && (
           <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
         )}
       </div>
-      
+
       <div className="space-y-1">
-        <div className={cn(
-          'text-xl font-bold',
-          isHealthy === null
-            ? 'text-gray-400'
-            : isHealthy
-              ? 'text-green-600 dark:text-green-400'
-              : 'text-red-600 dark:text-red-400'
-        )}>
-          {value !== undefined ? formatValue(value, title.toLowerCase()) : '--'}
+        <div
+          className={cn(
+            "text-xl font-bold",
+            isHealthy === null
+              ? "text-gray-400"
+              : isHealthy
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400",
+          )}
+        >
+          {value !== undefined ? formatValue(value, title.toLowerCase()) : "--"}
         </div>
-        
+
         <div className="text-xs text-gray-500 dark:text-gray-400">
-          範囲: {threshold.min}{unit} - {threshold.max}{unit}
+          範囲: {threshold.min}
+          {unit} - {threshold.max}
+          {unit}
         </div>
-        
+
         {timestamp && (
           <div className="text-xs text-gray-400">
-            {formatDate(timestamp, { hour: '2-digit', minute: '2-digit' })}
+            {formatDate(timestamp, { hour: "2-digit", minute: "2-digit" })}
           </div>
         )}
       </div>

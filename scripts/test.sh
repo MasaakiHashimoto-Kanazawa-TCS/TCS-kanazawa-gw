@@ -47,21 +47,17 @@ test_frontend() {
     
     cd frontend
     
+    # フォーマット・リント・型チェック
+    print_info "コード品質チェックを実行..."
+    vp check
+
     # 単体テスト
     print_info "単体テストを実行..."
-    npm run test -- --coverage --watchAll=false
-    
-    # 型チェック
-    print_info "TypeScript型チェックを実行..."
-    npm run type-check
-    
-    # リンティング
-    print_info "ESLintチェックを実行..."
-    npm run lint
-    
+    vp test
+
     # ビルドテスト
     print_info "ビルドテストを実行..."
-    npm run build
+    vp build
     
     cd ..
     print_success "フロントエンドテスト完了"

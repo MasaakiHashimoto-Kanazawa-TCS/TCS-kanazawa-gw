@@ -2,10 +2,10 @@
  * レスポンシブ対応フック
  */
 
-import { useState, useEffect } from 'react';
-import { BREAKPOINTS } from '@/lib/constants';
+import { useState, useEffect } from "react";
+import { BREAKPOINTS } from "@/lib/constants";
 
-export type Breakpoint = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+export type Breakpoint = "sm" | "md" | "lg" | "xl" | "2xl";
 
 export interface UseResponsiveResult {
   isMobile: boolean;
@@ -31,16 +31,16 @@ export function useResponsive(): UseResponsiveResult {
     // 初期値設定
     handleResize();
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const getCurrentBreakpoint = (): Breakpoint => {
-    if (windowWidth >= BREAKPOINTS['2xl']) return '2xl';
-    if (windowWidth >= BREAKPOINTS.xl) return 'xl';
-    if (windowWidth >= BREAKPOINTS.lg) return 'lg';
-    if (windowWidth >= BREAKPOINTS.md) return 'md';
-    return 'sm';
+    if (windowWidth >= BREAKPOINTS["2xl"]) return "2xl";
+    if (windowWidth >= BREAKPOINTS.xl) return "xl";
+    if (windowWidth >= BREAKPOINTS.lg) return "lg";
+    if (windowWidth >= BREAKPOINTS.md) return "md";
+    return "sm";
   };
 
   const isBreakpoint = (breakpoint: Breakpoint): boolean => {
@@ -62,7 +62,7 @@ export function useResponsive(): UseResponsiveResult {
     currentBreakpoint: getCurrentBreakpoint(),
     isBreakpoint,
     isAboveBreakpoint,
-    isBelowBreakpoint
+    isBelowBreakpoint,
   };
 }
 
@@ -83,10 +83,10 @@ export function useIsTouchDevice(): boolean {
   useEffect(() => {
     const checkTouchDevice = () => {
       setIsTouchDevice(
-        'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        // @ts-ignore
-        navigator.msMaxTouchPoints > 0
+        "ontouchstart" in window ||
+          navigator.maxTouchPoints > 0 ||
+          // @ts-ignore
+          navigator.msMaxTouchPoints > 0,
       );
     };
 
@@ -99,18 +99,18 @@ export function useIsTouchDevice(): boolean {
 /**
  * 画面向き判定フック
  */
-export function useOrientation(): 'portrait' | 'landscape' {
-  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
+export function useOrientation(): "portrait" | "landscape" {
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
 
   useEffect(() => {
     const handleOrientationChange = () => {
-      setOrientation(window.innerHeight > window.innerWidth ? 'portrait' : 'landscape');
+      setOrientation(window.innerHeight > window.innerWidth ? "portrait" : "landscape");
     };
 
     handleOrientationChange();
-    window.addEventListener('resize', handleOrientationChange);
-    
-    return () => window.removeEventListener('resize', handleOrientationChange);
+    window.addEventListener("resize", handleOrientationChange);
+
+    return () => window.removeEventListener("resize", handleOrientationChange);
   }, []);
 
   return orientation;
@@ -126,14 +126,14 @@ export function useViewportSize(): { width: number; height: number } {
     const handleResize = () => {
       setSize({
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
       });
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return size;

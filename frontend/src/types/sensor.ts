@@ -3,7 +3,7 @@
  */
 
 // 現在サポートされているデータタイプ（将来の拡張を考慮）
-export type DataType = 'temperature' | 'pH';
+export type DataType = "temperature" | "pH";
 
 // 将来的な拡張のためのコメント
 // export type DataType = 'temperature' | 'pH' | 'humidity' | 'pressure' | 'soil_moisture' | 'light';
@@ -32,12 +32,12 @@ export interface GetDataParams {
 
 export interface GetSummaryParams {
   data_type: DataType;
-  period?: 'hour' | 'day' | 'week' | 'month';
+  period?: "hour" | "day" | "week" | "month";
   start_time?: string;
   end_time?: string;
 }
 
-export type TimeRange = '24h' | '7d' | '30d' | '150d' | 'custom';
+export type TimeRange = "24h" | "7d" | "30d" | "150d" | "custom";
 
 export interface TimeRangeOption {
   value: TimeRange;
