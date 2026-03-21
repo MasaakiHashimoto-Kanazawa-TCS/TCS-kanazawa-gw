@@ -15,6 +15,10 @@ export class PlantService {
     try {
       console.log("PlantService.getPlants: Starting, IS_DEVELOPMENT:", IS_DEVELOPMENT);
 
+      if (IS_DEVELOPMENT) {
+        return this.getMockPlants();
+      }
+
       // バックエンドAPIから植物データを取得
       console.log("PlantService.getPlants: Calling backend API");
       const response = await apiClient.get<Plant[]>(API_ENDPOINTS.PLANTS);
@@ -47,6 +51,11 @@ export class PlantService {
   async getPlant(id: string): Promise<Plant> {
     try {
       console.log("PlantService.getPlant: Starting for ID:", id);
+
+      if (IS_DEVELOPMENT) {
+        const plants = this.getMockPlants();
+        return plants.find((p) => p.id === id) ?? plants[0];
+      }
 
       // バックエンドAPIから植物データを取得
       console.log("PlantService.getPlant: Calling backend API for ID:", id);
@@ -146,6 +155,27 @@ export class PlantService {
       console.error("Failed to delete plant:", error);
       throw error;
     }
+  }
+
+  /**
+   * モックデータを返す（開発用）
+   */
+  private getMockPlants(): Plant[] {
+    return [
+      {
+        id: "plant-001",
+        name: "トマト",
+        species: "Solanum lycopersicum",
+        location: "金沢支店",
+        device_id: "sensor_001",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        thresholds: {
+          temperature: { min: 18, max: 28 },
+          pH: { min: 6.0, max: 7.5 },
+        },
+      },
+    ];
   }
 
   /**

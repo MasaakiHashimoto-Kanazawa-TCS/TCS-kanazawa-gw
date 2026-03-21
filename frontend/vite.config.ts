@@ -7,6 +7,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    include: ["recharts", "react-dom", "react-router-dom"],
+  },
   test: {
     environment: "jsdom",
     globals: true,
